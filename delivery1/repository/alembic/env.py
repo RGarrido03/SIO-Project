@@ -2,13 +2,10 @@ import asyncio
 
 from alembic import context
 from sqlalchemy import pool
-from sqlalchemy.engine import Connection
-from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlalchemy.engine import Connection, engine_from_config
 from sqlmodel import SQLModel
 
-from backend.config.settings import settings
-from backend.models.salary import EmployeeDay, StaffDay  # noqa
-from backend.models.user import User  # noqa
+from repository.config.settings import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -60,22 +57,22 @@ def do_run_migrations(connection: Connection) -> None:
         context.run_migrations()
 
 
-async def run_async_migrations() -> None:
+async def run_sync_migrations() -> None:
     """In this scenario we need to create an Engine
     and associate a connection with the context.
 
     """
 
-    connectable = async_engine_from_config(
+    connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
 
-    async with connectable.connect() as connection:
-        await connection.run_sync(do_run_migrations)
+    with connectable.connect() as connection:
+        do_run_migrations(connection)
 
-    await connectable.dispose()
+    connectable.dispose()
 
 
 def run_migrations_online() -> None:
@@ -84,7 +81,7 @@ def run_migrations_online() -> None:
     connectable = config.attributes.get("connection", None)
 
     if connectable is None:
-        asyncio.run(run_async_migrations())
+        asyncio.run(run_sync_migrations())
     else:
         do_run_migrations(connectable)
 
