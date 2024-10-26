@@ -14,10 +14,8 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:8080"]
 
     # Database
-    DATABASE_PASSWORD: str = os.getenv("DATABASE_PASSWORD", "postgres")
-    DATABASE_URI: str = (
-        f"postgresql+asyncpg://postgres:{DATABASE_PASSWORD}@db:5432/garrido"
-    )
+    DATABASE_FILENAME: str = "database.db"
+    DATABASE_URI: str = f"sqlite:///{DATABASE_FILENAME}"
 
 
 settings = Settings()
