@@ -1,0 +1,14 @@
+services:
+  backend:
+    build:
+      context: ./repository
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - static:/repository/static
+    tty: true
+
+volumes:
+  static:
