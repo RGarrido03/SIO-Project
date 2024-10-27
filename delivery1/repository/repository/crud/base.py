@@ -1,14 +1,15 @@
 from typing import Generic, TypeVar, Type, Annotated
 
 from fastapi import Depends
-from sqlmodel import select, SQLModel, Session as SQLModelSession
+from sqlmodel import select, SQLModel
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from repository.config.database import get_session
 
 ModelType = TypeVar("ModelType", bound=SQLModel)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=SQLModel)
 
-Session = Annotated[SQLModelSession, Depends(get_session)]
+Session = Annotated[AsyncSession, Depends(get_session)]
 
 
 class CRUDBase(Generic[ModelType, CreateSchemaType]):
@@ -24,40 +25,40 @@ class CRUDBase(Generic[ModelType, CreateSchemaType]):
         """
         self.model = model
 
-    def create(self, obj: CreateSchemaType, session: Session) -> ModelType:
-        obj1 = self.model(**obj.model_dump())
-        session.add(obj1)
-        session.commit()
-        session.refresh(obj1)
-        return obj1
+    async def create(self, obj: CreateSchemaType, session: Session) -> ModelType:
+        db_obj = self.model.model_validate(obj)
+        session.add(db_obj)
+        await session.commit()
+        await session.refresh(db_obj)
+        return db_obj
 
-    def get(self, id: int, session: Session) -> ModelType | None:
-        return session.get(self.model, id)  # type: ignore
+    async def get(self, id: int, session: Session) -> ModelType | None:
+        return await session.get(self.model, id)
 
-    def get_all(self, session: Session) -> list[ModelType]:
-        result = session.exec(select(self.model))
+    async def get_all(self, session: Session) -> list[ModelType]:
+        result = await session.exec(select(self.model))
         return list(result.all())
 
-    def update(
+    async def update(
         self, id: int, obj: CreateSchemaType, session: Session
     ) -> ModelType | None:
-        db_obj = self.get(id, session)
+        db_obj = await self.get(id, session)
         if db_obj is None:
             return None
 
-        for key, value in obj.model_dump().items():
-            setattr(db_obj, key, value)
+        new_data = obj.model_dump(exclude_unset=True)
+        db_obj.sqlmodel_update(new_data)
 
         session.add(db_obj)
-        session.commit()
-        session.refresh(db_obj)
+        await session.commit()
+        await session.refresh(db_obj)
         return db_obj
 
-    def delete(self, id: int, session: Session) -> bool:
-        obj = self.get(id, session)
+    async def delete(self, id: int, session: Session) -> bool:
+        obj = await self.get(id, session)
         if obj is None:
             return False
 
-        session.delete(obj)
-        session.commit()
+        await session.delete(obj)
+        await session.commit()
         return True
