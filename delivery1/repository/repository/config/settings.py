@@ -1,4 +1,5 @@
 import os
+from dataclasses import field
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -11,7 +12,9 @@ class Settings(BaseSettings):
     PRODUCTION: bool = os.getenv("ENV") == "production"
 
     STATIC_PATH: str = "/static"
-    BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:8080"]
+    BACKEND_CORS_ORIGINS: list[str] = field(
+        default_factory=lambda: ["http://localhost:8080"]
+    )
 
     # Database
     DATABASE_FILENAME: str = "database.db"
