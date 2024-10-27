@@ -23,4 +23,5 @@ class SubjectCreate(SubjectBase):
 
 class PublicKey(SQLModel, table=True):
     key: str = Field(index=True, primary_key=True)
+    subject_username: str = Field(foreign_key="subject.username")
     subject: Subject = Relationship(back_populates="public_keys")
