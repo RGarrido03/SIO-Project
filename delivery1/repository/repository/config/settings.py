@@ -15,7 +15,7 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_FILENAME: str = "database.db"
-    DATABASE_URI: str = f"sqlite:///{DATABASE_FILENAME}"
+    DATABASE_URI: str = f"sqlite+aiosqlite:///{DATABASE_FILENAME}"
 
 
 settings = Settings()

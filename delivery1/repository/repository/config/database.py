@@ -1,12 +1,17 @@
-from typing import Generator
+from typing import Generator, AsyncGenerator
 
 from alembic import command, config
 from sqlalchemy import Connection
-from sqlmodel import create_engine, Session
+from sqlalchemy.orm import sessionmaker
+from sqlmodel import create_engine
+from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from repository.config.settings import settings
 
-engine = create_engine(settings.DATABASE_URI, connect_args={"check_same_thread": False})
+engine = AsyncEngine(
+    create_engine(settings.DATABASE_URI, connect_args={"check_same_thread": False})
+)
 
 
 def run_upgrade(connection: Connection, cfg: config.Config) -> None:
@@ -15,10 +20,11 @@ def run_upgrade(connection: Connection, cfg: config.Config) -> None:
 
 
 async def init_db() -> None:
-    with engine.begin() as conn:
-        run_upgrade(conn, config.Config("alembic.ini"))
+    async with engine.begin() as conn:
+        await conn.run_sync(run_upgrade, config.Config("alembic.ini"))
 
 
-def get_session() -> Generator[Session, None]:
-    with Session(engine) as session:  # type: ignore
+async def get_session() -> AsyncGenerator[AsyncSession, None]:
+    async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    async with async_session() as session:
         yield session

@@ -5,6 +5,7 @@ description = "SIO Project"
 authors = ["André Ribeiro", "Bruno Lopes", "Rúben Garrido", "Violeta Ramos"]
 
 [tool.poetry.dependencies]
+aiosqlite = "^0.20.0"
 alembic = "^1.13.3"
 email-validator = "^2.2.0"
 fastapi = { extras = ["standard"], version = "^0.115.3" }
