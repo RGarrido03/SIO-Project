@@ -7,8 +7,9 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlmodel import SQLModel
 
 from repository.config.settings import settings
-
-# IMPORT MODELS HERE
+from repository.models.organization import Organization  # noqa
+from repository.models.relations import UserOrganizationLink  # noqa
+from repository.models.subject import Subject, PublicKey  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
