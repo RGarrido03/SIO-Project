@@ -1,16 +1,18 @@
-from typing import Generator, AsyncGenerator
+from typing import AsyncGenerator
 
 from alembic import command, config
 from sqlalchemy import Connection
+from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import create_engine
-from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from repository.config.settings import settings
 
 engine = AsyncEngine(
-    create_engine(settings.DATABASE_URI, connect_args={"check_same_thread": False})
+    create_engine(
+        settings.DATABASE_URI, connect_args={"check_same_thread": False}, future=True
+    )
 )
 
 
