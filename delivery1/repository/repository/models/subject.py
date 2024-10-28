@@ -1,3 +1,5 @@
+import uuid
+
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel, Relationship
 
@@ -21,7 +23,11 @@ class SubjectCreate(SubjectBase):
     pass
 
 
-class PublicKey(SQLModel, table=True):
-    key: str = Field(index=True, primary_key=True)
+class PublicKeyBase(SQLModel):
+    key: str = Field(index=True)
     subject_username: str = Field(foreign_key="subject.username")
+
+
+class PublicKey(PublicKeyBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     subject: Subject = Relationship(back_populates="public_keys")
