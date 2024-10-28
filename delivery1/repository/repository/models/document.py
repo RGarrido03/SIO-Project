@@ -1,6 +1,7 @@
-import datetime
+import uuid
+from datetime import datetime
 
-from sqlalchemy import Column
+from sqlalchemy import Column, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import SQLModel, Field, Relationship
 
@@ -11,9 +12,8 @@ from repository.models.subject import Subject
 
 class DocumentBase(SQLModel):
     # Public metadata
-    document_handle: str = Field(index=True, primary_key=True)
     name: str
-    create_date: datetime.datetime = Field(default=datetime.datetime.now)
+    create_date: datetime = Field(default=func.now())
     file_handle: str
 
     # ACL
@@ -33,6 +33,7 @@ class DocumentBaseWithPrivateMeta(DocumentBase):
 
 
 class Document(DocumentBaseWithPrivateMeta, table=True):
+    document_handle: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     organization: Organization = Relationship(back_populates="documents")
     creator: Subject = Relationship(back_populates="documents")
     deleter: Subject | None = Relationship(back_populates="deleted_documents")
