@@ -9,11 +9,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from repository.config.settings import settings
 
-engine = AsyncEngine(
-    create_engine(
-        settings.DATABASE_URI, connect_args={"check_same_thread": False}, future=True
-    )
-)
+engine = AsyncEngine(create_engine(settings.DATABASE_URI, future=True))
 
 
 def run_upgrade(connection: Connection, cfg: config.Config) -> None:
