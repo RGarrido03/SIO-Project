@@ -3,7 +3,8 @@ from repository.models.organization import Organization, OrganizationCreate
 
 
 class CRUDOrganization(CRUDBase[Organization, OrganizationCreate]):
-    pass
+    def __init__(self) -> None:
+        super().__init__(Organization)
 
 
-crud_organization = CRUDOrganization(Organization)
+crud_organization = CRUDOrganization()
