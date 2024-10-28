@@ -11,6 +11,7 @@ class Organization(OrganizationBase, table=True):
     subject_links: list[SubjectOrganizationLink] = Relationship(
         back_populates="organization"
     )
+    documents: list["Document"] = Relationship(back_populates="organization")
 
 
 class OrganizationCreate(OrganizationBase):
