@@ -1,7 +1,7 @@
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel, Relationship
 
-from repository.models.relations import UserOrganizationLink
+from repository.models.relations import SubjectOrganizationLink
 
 
 class SubjectBase(SQLModel):
@@ -12,7 +12,7 @@ class SubjectBase(SQLModel):
 
 class Subject(SubjectBase, table=True):
     public_keys: list["PublicKey"] = Relationship(back_populates="subject")
-    organization_links: list["UserOrganizationLink"] = Relationship(
+    organization_links: list[SubjectOrganizationLink] = Relationship(
         back_populates="subject"
     )
 
