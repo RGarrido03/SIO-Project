@@ -17,8 +17,8 @@ class Settings(BaseSettings):
     )
 
     # Database
-    DATABASE_FILENAME: str = "database.db"
-    DATABASE_URI: str = f"sqlite+aiosqlite:///{DATABASE_FILENAME}"
+    DATABASE_PASSWORD: str = os.getenv("DATABASE_PASSWORD", "postgres")
+    DATABASE_URI: str = f"postgresql+asyncpg://postgres:{DATABASE_PASSWORD}@db:5432/sio"
 
 
 settings = Settings()
