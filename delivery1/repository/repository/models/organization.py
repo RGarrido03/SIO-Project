@@ -1,6 +1,6 @@
 from sqlmodel import Field, SQLModel, Relationship
 
-from repository.models.subject import UserOrganizationLink
+from repository.models.subject import SubjectOrganizationLink
 
 
 class OrganizationBase(SQLModel):
@@ -8,7 +8,7 @@ class OrganizationBase(SQLModel):
 
 
 class Organization(OrganizationBase, table=True):
-    subject_links: list["UserOrganizationLink"] = Relationship(
+    subject_links: list[SubjectOrganizationLink] = Relationship(
         back_populates="organization"
     )
 
