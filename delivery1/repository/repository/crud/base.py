@@ -23,13 +23,16 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, PrimaryKeyType]):
         """
         self.model = model
 
-    async def create(self, obj: CreateSchemaType) -> ModelType:
+    async def _add_to_db(self, obj: ModelType) -> ModelType:
         session = await anext(get_session())
-        db_obj = self.model.model_validate(obj)
-        session.add(db_obj)
+        session.add(obj)
         await session.commit()
-        await session.refresh(db_obj)
-        return db_obj
+        await session.refresh(obj)
+        return obj
+
+    async def create(self, obj: CreateSchemaType) -> ModelType:
+        db_obj = self.model.model_validate(obj)
+        return await self._add_to_db(db_obj)
 
     async def get(self, id: PrimaryKeyType) -> ModelType | None:
         session = await anext(get_session())
@@ -47,14 +50,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, PrimaryKeyType]):
         if db_obj is None:
             return None
 
-        session = await anext(get_session())
         new_data = obj.model_dump(exclude_unset=True)
         db_obj.sqlmodel_update(new_data)
 
-        session.add(db_obj)
-        await session.commit()
-        await session.refresh(db_obj)
-        return db_obj
+        return await self._add_to_db(db_obj)
 
     async def delete(self, id: PrimaryKeyType) -> bool:
         obj = await self.get(id)
