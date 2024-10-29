@@ -1,3 +1,4 @@
+import uuid
 from typing import Generic, TypeVar, Type
 
 from sqlmodel import select, SQLModel
@@ -6,9 +7,10 @@ from repository.config.database import get_session
 
 ModelType = TypeVar("ModelType", bound=SQLModel)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=SQLModel)
+PrimaryKeyType = TypeVar("PrimaryKeyType", int, str, uuid.UUID)
 
 
-class CRUDBase(Generic[ModelType, CreateSchemaType]):
+class CRUDBase(Generic[ModelType, CreateSchemaType, PrimaryKeyType]):
     def __init__(
         self,
         model: Type[ModelType],
@@ -29,7 +31,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType]):
         await session.refresh(db_obj)
         return db_obj
 
-    async def get(self, id: int) -> ModelType | None:
+    async def get(self, id: PrimaryKeyType) -> ModelType | None:
         session = await anext(get_session())
         return await session.get(self.model, id)
 
@@ -38,7 +40,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType]):
         result = await session.exec(select(self.model))
         return list(result.all())
 
-    async def update(self, id: int, obj: CreateSchemaType) -> ModelType | None:
+    async def update(
+        self, id: PrimaryKeyType, obj: CreateSchemaType
+    ) -> ModelType | None:
         db_obj = await self.get(id)
         if db_obj is None:
             return None
@@ -52,7 +56,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType]):
         await session.refresh(db_obj)
         return db_obj
 
-    async def delete(self, id: int) -> bool:
+    async def delete(self, id: PrimaryKeyType) -> bool:
         obj = await self.get(id)
         if obj is None:
             return False
