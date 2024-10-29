@@ -1,4 +1,3 @@
-from repository.config.database import get_session
 from repository.crud.base import CRUDBase
 from repository.models.subject import Subject, SubjectCreate
 
@@ -13,12 +12,7 @@ class CRUDSubject(CRUDBase[Subject, SubjectCreate, str]):
             return None
 
         user.active = active
-
-        session = await anext(get_session())
-        session.add(user)
-        await session.commit()
-        await session.refresh(user)
-        return user
+        return await self._add_to_db(user)
 
 
 crud_subject = CRUDSubject()
