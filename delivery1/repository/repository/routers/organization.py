@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from repository.crud.organization import crud_organization
 from repository.models.organization import Organization, OrganizationCreate
 
-router = APIRouter(prefix="/organization")
+router = APIRouter(prefix="/organization", tags=["Organization"])
 
 
 @router.post("/")

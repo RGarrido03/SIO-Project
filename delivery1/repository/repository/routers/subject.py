@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from repository.crud.subject import crud_subject
 from repository.models.subject import SubjectCreate, Subject
 
-router = APIRouter(prefix="/subject")
+router = APIRouter(prefix="/subject", tags=["Subject"])
 
 
 @router.post("/")
