@@ -13,11 +13,11 @@ from repository.models.subject import Subject
 
 class DocumentBase(SQLModel):
     # Public metadata
-    name: str
-    file_handle: str
+    name: str = Field(index=True)
+    file_handle: str | None
 
     # ACL
-    acl: dict[RoleEnum, list[DocumentPermission]] = Field(
+    acl: dict[RoleEnum, set[DocumentPermission]] = Field(
         default={}, sa_column=Column(JSONB)
     )
 
@@ -55,4 +55,4 @@ class Document(DocumentBaseWithPrivateMeta, table=True):
 
 
 class DocumentCreate(DocumentBaseWithPrivateMeta):
-    pass
+    file_handle: str
