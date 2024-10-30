@@ -7,7 +7,7 @@ from repository.config.database import get_session
 
 ModelType = TypeVar("ModelType", bound=SQLModel)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=SQLModel)
-PrimaryKeyType = TypeVar("PrimaryKeyType", int, str, uuid.UUID)
+PrimaryKeyType = TypeVar("PrimaryKeyType", int, str, uuid.UUID, tuple[str, str])
 
 
 class CRUDBase(Generic[ModelType, CreateSchemaType, PrimaryKeyType]):
