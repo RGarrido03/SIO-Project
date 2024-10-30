@@ -17,7 +17,7 @@ class CRUDOrganization(CRUDBase[Organization, OrganizationBase, str]):
             SubjectOrganizationLinkCreate(
                 organization_name=organization_name,
                 subject_username=subject_username,
-                public_key=public_key_fk,
+                public_key_id=public_key_fk,
             )
         )
 
