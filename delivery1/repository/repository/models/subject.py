@@ -17,8 +17,7 @@ class SubjectBase(SQLModel):
     username: str = Field(index=True, primary_key=True)
     full_name: str
     email: EmailStr = Field(index=True)
-    password: str
-    active: bool = True
+    active: bool = Field(default=True)
 
 
 class Subject(SubjectBase, table=True):
