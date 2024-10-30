@@ -6,9 +6,10 @@ from repository.models.subject import SubjectCreate, Subject
 router = APIRouter(prefix="/subject", tags=["Subject"])
 
 
-@router.post("/")
+@router.post("")
 async def create_subject(subject: SubjectCreate) -> Subject:
-    return await crud_subject.create(subject)
+    obj = await crud_subject.create(subject)
+    return obj.subject
 
 
 @router.patch("/activation")
