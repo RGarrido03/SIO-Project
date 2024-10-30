@@ -11,18 +11,18 @@ from repository.models.organization import (
 router = APIRouter(prefix="/organization", tags=["Organization"])
 
 
-@router.post("/", response_model=OrganizationBase)
+@router.post("", response_model=OrganizationBase)
 async def create_organization(
     organization_and_subject: OrganizationCreate,
 ) -> Organization:
     subject = await crud_subject.create(organization_and_subject.subject)
     organization = await crud_organization.create(organization_and_subject.organization)
     await crud_organization.add_subject(
-        organization.name, subject.username, subject.public_key_fk
+        organization.name, subject.subject.username, subject.public_key.id
     )
     return organization
 
 
-@router.get("/")
+@router.get("")
 async def list_organizations() -> list[Organization]:
     return await crud_organization.get_all()
