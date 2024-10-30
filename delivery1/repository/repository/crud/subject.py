@@ -23,9 +23,7 @@ class CRUDSubject(CRUDBase[Subject, SubjectCreate, str]):
         )
         session = await anext(get_session())
         await session.refresh(subject)
-        return SubjectWithPublicKeyUUID(
-            **subject.model_dump(), public_key_fk=public_key.id
-        )
+        return SubjectWithPublicKeyUUID(subject=subject, public_key=public_key)
 
     async def set_active(self, username: str, active: bool) -> Subject | None:
         user = await self.get(username)
