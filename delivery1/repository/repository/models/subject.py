@@ -17,10 +17,10 @@ class SubjectBase(SQLModel):
     username: str = Field(index=True, primary_key=True)
     full_name: str
     email: EmailStr = Field(index=True)
-    active: bool = Field(default=True)
 
 
 class Subject(SubjectBase, table=True):
+    active: bool = Field(default=True)
     public_keys: list["PublicKey"] = Relationship(back_populates="subject")
     organization_links: list[SubjectOrganizationLink] = Relationship(
         back_populates="subject"
@@ -29,7 +29,7 @@ class Subject(SubjectBase, table=True):
 
 
 class SubjectCreate(SubjectBase):
-    pass
+    public_key: str
 
 
 class PublicKeyBase(SQLModel):
@@ -40,6 +40,10 @@ class PublicKeyBase(SQLModel):
 class PublicKey(PublicKeyBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     subject: Subject = Relationship(back_populates="public_keys")
+
+
+class PublicKeyCreate(PublicKeyBase):
+    pass
 
 
 class Role(SQLModel, table=True):
