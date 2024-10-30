@@ -32,6 +32,10 @@ class SubjectCreate(SubjectBase):
     public_key: str
 
 
+class SubjectWithPublicKeyUUID(Subject):
+    public_key_fk: uuid.UUID
+
+
 class PublicKeyBase(SQLModel):
     key: str = Field(index=True)
     subject_username: str = Field(foreign_key="subject.username")
