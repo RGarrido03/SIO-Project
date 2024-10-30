@@ -1,6 +1,6 @@
 from sqlmodel import Field, SQLModel, Relationship
 
-from repository.models.subject import SubjectOrganizationLink
+from repository.models.subject import SubjectOrganizationLink, SubjectCreate
 
 
 class OrganizationBase(SQLModel):
@@ -14,5 +14,6 @@ class Organization(OrganizationBase, table=True):
     documents: list["Document"] = Relationship(back_populates="organization")
 
 
-class OrganizationCreate(OrganizationBase):
-    pass
+class OrganizationCreate(SQLModel):
+    organization: OrganizationBase
+    subject: SubjectCreate
