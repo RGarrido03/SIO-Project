@@ -3,6 +3,7 @@ from datetime import datetime
 
 from sqlalchemy import Column, func
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import RelationshipProperty
 from sqlmodel import SQLModel, Field, Relationship
 
 from repository.models.organization import Organization
@@ -13,7 +14,6 @@ from repository.models.subject import Subject
 class DocumentBase(SQLModel):
     # Public metadata
     name: str
-    create_date: datetime = Field(default=func.now())
     file_handle: str
 
     # ACL
@@ -34,9 +34,24 @@ class DocumentBaseWithPrivateMeta(DocumentBase):
 
 class Document(DocumentBaseWithPrivateMeta, table=True):
     document_handle: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    create_date: datetime = Field(default=func.now())
+
+    # Relations
     organization: Organization = Relationship(back_populates="documents")
-    creator: Subject = Relationship(back_populates="documents")
-    deleter: Subject | None = Relationship(back_populates="deleted_documents")
+    creator: Subject = Relationship(
+        back_populates="documents",
+        sa_relationship=RelationshipProperty(
+            "Subject",
+            primaryjoin="Document.creator_username == Subject.username",
+        ),
+    )
+    deleter: Subject | None = Relationship(
+        back_populates="deleted_documents",
+        sa_relationship=RelationshipProperty(
+            "Subject",
+            primaryjoin="Document.deleter_username == Subject.username",
+        ),
+    )
 
 
 class DocumentCreate(DocumentBaseWithPrivateMeta):
