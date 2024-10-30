@@ -4,6 +4,8 @@ from sqlalchemy import Column
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import SQLModel, Field, Relationship
 
+from repository.models.session import Session
+
 
 class SubjectOrganizationLinkBase(SQLModel):
     subject_username: str = Field(foreign_key="subject.username", primary_key=True)
@@ -12,6 +14,9 @@ class SubjectOrganizationLinkBase(SQLModel):
 
 
 class SubjectOrganizationLink(SubjectOrganizationLinkBase, table=True):
+    session: Session | None = Field(default=None, sa_column=Column(JSONB))
+
+    # Relationships
     subject: "Subject" = Relationship(back_populates="organization_links")
     organization: "Organization" = Relationship(back_populates="subject_links")
     publickey: "PublicKey" = Relationship()
