@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 
 from sqlmodel import SQLModel, Field
 
+from repository.models.permission import RoleEnum
+
 
 # Use of Session is on file repository/models/relations.py
 
@@ -13,6 +15,12 @@ class Session(SQLModel):
     expires: datetime = Field(
         default_factory=lambda: datetime.now() + timedelta(minutes=30)
     )
+    roles: set[RoleEnum] = Field(default_factory=set)
+
+
+class SessionWithSubjectInfo(Session):
+    username: str
+    organization: str
 
 
 class SessionCreate(SQLModel):
