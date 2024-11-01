@@ -18,7 +18,7 @@ async def create_organization(
     subject = await crud_subject.create(organization_and_subject.subject)
     organization = await crud_organization.create(organization_and_subject.organization)
     await crud_organization.add_subject(
-        organization.name, subject.subject.username, subject.public_key_id.id
+        organization.name, subject.subject.username, subject.public_key.id
     )
     return organization
 
