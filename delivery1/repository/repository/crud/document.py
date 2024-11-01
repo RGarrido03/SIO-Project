@@ -31,9 +31,9 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
         return await self.create(document)
 
     async def get_by_name(self, name: str) -> Document | None:
-        session = await anext(get_session())
-        result = await session.exec(select(Document).where(Document.name == name))
-        return result.first()
+        async with get_session() as session:
+            result = await session.exec(select(Document).where(Document.name == name))
+            return result.first()
 
     async def get_all(
         self,
@@ -41,22 +41,22 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
         date: datetime | None = None,
         date_order: Literal["nt", "ot", "et"] = "nt",
     ) -> list[Document]:
-        session = await anext(get_session())
-        query: SelectOfScalar[Document] = select(Document)
+        async with get_session() as session:
+            query: SelectOfScalar[Document] = select(Document)
 
-        if username:
-            query = query.where(Document.creator_username == username)
+            if username:
+                query = query.where(Document.creator_username == username)
 
-        if date:
-            operators = {
-                "nt": ge,
-                "ot": le,
-                "et": eq,
-            }
-            query = query.where(operators[date_order](Document.create_date, date))
+            if date:
+                operators = {
+                    "nt": ge,
+                    "ot": le,
+                    "et": eq,
+                }
+                query = query.where(operators[date_order](Document.create_date, date))
 
-        result = await session.exec(query)
-        return list(result.all())
+            result = await session.exec(query)
+            return list(result.all())
 
     async def add_acl(
         self, document: Document, role: RoleEnum, permission: DocumentPermission

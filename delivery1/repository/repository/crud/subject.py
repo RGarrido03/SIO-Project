@@ -14,16 +14,16 @@ class CRUDSubject(CRUDBase[Subject, SubjectCreate, str]):
         super().__init__(Subject)
 
     async def create(self, create_obj: SubjectCreate) -> SubjectWithPublicKeyUUID:
-        subject = Subject.model_validate(create_obj)
-        subject = await self._add_to_db(subject)
-        public_key = await crud_public_key.create(
-            PublicKeyCreate(
-                key=create_obj.public_key, subject_username=subject.username
+        async with get_session() as session:
+            subject = Subject.model_validate(create_obj)
+            subject = await self._add_to_db(subject, session=session)
+            public_key = await crud_public_key.create(
+                PublicKeyCreate(
+                    key=create_obj.public_key, subject_username=subject.username
+                )
             )
-        )
-        session = await anext(get_session())
-        await session.refresh(subject)
-        return SubjectWithPublicKeyUUID(subject=subject, public_key=public_key)
+            await session.refresh(subject)
+            return SubjectWithPublicKeyUUID(subject=subject, public_key=public_key)
 
     async def set_active(self, username: str, active: bool) -> Subject | None:
         user = await self.get(username)
