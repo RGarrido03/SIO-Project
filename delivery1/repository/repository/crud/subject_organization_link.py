@@ -2,6 +2,7 @@ from datetime import datetime
 
 from cryptography.hazmat.primitives._serialization import Encoding, PublicFormat
 
+from repository.config.database import get_session
 from repository.crud.base import CRUDBase
 from repository.models.permission import RoleEnum
 from repository.models.relations import (
@@ -19,12 +20,13 @@ class CRUDSubjectOrganizationLink(
         super().__init__(SubjectOrganizationLink)
 
     async def create_session(self, info: SessionCreate) -> SessionWithSubjectInfo:
-        rel = await self.get((info.username, info.organization))
-        if rel is None:
-            raise ValueError("Subject not found")
+        async with get_session() as session:
+            rel = await self.get((info.username, info.organization), session)
+            if rel is None:
+                raise ValueError("Subject not found")
 
-        if info.public not in [pk.key for pk in rel.subject.public_keys]:
-            raise ValueError("Public key not found in user keys")
+            if info.public not in [pk.key for pk in rel.subject.public_keys]:
+                raise ValueError("Public key not found in user keys")
 
         decrypted_private = load_private_key(info.private, info.password)
         if (

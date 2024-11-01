@@ -33,7 +33,6 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, PrimaryKeyType]):
             await session.refresh(obj)
             return obj
 
-        # Stupid, I know. There's no workaround.
         async with get_session() as session:
             session.add(obj)
             await session.commit()
@@ -44,7 +43,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, PrimaryKeyType]):
         db_obj = self.model.model_validate(obj)
         return await self._add_to_db(db_obj)
 
-    async def get(self, id: PrimaryKeyType) -> ModelType | None:
+    async def get(
+        self, id: PrimaryKeyType, session: AsyncSession | None = None
+    ) -> ModelType | None:
+        if session is not None:
+            return await session.get(self.model, id)
+
         async with get_session() as session:
             return await session.get(self.model, id)
 
