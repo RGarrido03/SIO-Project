@@ -21,7 +21,9 @@ class SubjectBase(SQLModel):
 
 class Subject(SubjectBase, table=True):
     active: bool = Field(default=True)
-    public_keys: list["PublicKey"] = Relationship(back_populates="subject")
+    public_keys: list["PublicKey"] = Relationship(
+        back_populates="subject", sa_relationship_kwargs={"lazy": "selectin"}
+    )
     organization_links: list[SubjectOrganizationLink] = Relationship(
         back_populates="subject"
     )
