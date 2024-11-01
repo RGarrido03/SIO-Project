@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from alembic import command, config
@@ -22,6 +23,7 @@ async def init_db() -> None:
         await conn.run_sync(run_upgrade, config.Config("alembic.ini"))
 
 
+@asynccontextmanager
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     async with async_session() as session:

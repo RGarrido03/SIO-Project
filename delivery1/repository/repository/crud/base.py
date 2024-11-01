@@ -2,6 +2,7 @@ import uuid
 from typing import Generic, TypeVar, Type
 
 from sqlmodel import select, SQLModel
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from repository.config.database import get_session
 
@@ -23,25 +24,34 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, PrimaryKeyType]):
         """
         self.model = model
 
-    async def _add_to_db(self, obj: ModelType) -> ModelType:
-        session = await anext(get_session())
-        session.add(obj)
-        await session.commit()
-        await session.refresh(obj)
-        return obj
+    async def _add_to_db(
+        self, obj: ModelType, session: AsyncSession | None = None
+    ) -> ModelType:
+        if session is not None:
+            session.add(obj)
+            await session.commit()
+            await session.refresh(obj)
+            return obj
+
+        # Stupid, I know. There's no workaround.
+        async with get_session() as session:
+            session.add(obj)
+            await session.commit()
+            await session.refresh(obj)
+            return obj
 
     async def create(self, obj: CreateSchemaType) -> ModelType:
         db_obj = self.model.model_validate(obj)
         return await self._add_to_db(db_obj)
 
     async def get(self, id: PrimaryKeyType) -> ModelType | None:
-        session = await anext(get_session())
-        return await session.get(self.model, id)
+        async with get_session() as session:
+            return await session.get(self.model, id)
 
     async def get_all(self) -> list[ModelType]:
-        session = await anext(get_session())
-        result = await session.exec(select(self.model))
-        return list(result.all())
+        async with get_session() as session:
+            result = await session.exec(select(self.model))
+            return list(result.all())
 
     async def update(
         self, id: PrimaryKeyType, obj: CreateSchemaType
@@ -60,7 +70,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, PrimaryKeyType]):
         if obj is None:
             return False
 
-        session = await anext(get_session())
-        await session.delete(obj)
-        await session.commit()
-        return True
+        async with get_session() as session:
+            await session.delete(obj)
+            await session.commit()
+            return True
