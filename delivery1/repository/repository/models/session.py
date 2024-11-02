@@ -3,14 +3,15 @@ from datetime import datetime, timedelta
 
 from sqlmodel import SQLModel, Field
 
+from repository.models.nested_base import MutableSABaseModel
 from repository.models.permission import RoleEnum
 
 
 # Use of Session is on file repository/models/relations.py
 
 
-class Session(SQLModel):
-    id: uuid.UUID = Field(default=uuid.uuid4)
+class Session(MutableSABaseModel):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
     keys: list[str]
     expires: datetime = Field(
         default_factory=lambda: datetime.now() + timedelta(minutes=30)

@@ -1,7 +1,6 @@
 import uuid
 
 from sqlalchemy import Column
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import SQLModel, Field, Relationship
 
 from repository.models.session import Session
@@ -14,7 +13,10 @@ class SubjectOrganizationLinkBase(SQLModel):
 
 
 class SubjectOrganizationLink(SubjectOrganizationLinkBase, table=True):
-    session: Session | None = Field(default=None, sa_column=Column(JSONB))
+    session: Session | None = Field(
+        default=None,
+        sa_column=Column(Session.to_sa_type(), nullable=True),
+    )
 
     # Relationships
     subject: "Subject" = Relationship(
