@@ -1,10 +1,15 @@
-from fastapi import APIRouter, HTTPException
+from typing import Annotated
+
+from fastapi import APIRouter, HTTPException, Depends
 
 from repository.crud.subject import crud_subject
 from repository.crud.subject_organization_link import crud_subject_organization_link
+from repository.models import SubjectOrganizationLink
 from repository.models.permission import RoleEnum
-from repository.models.session import SessionCreate, Session, SessionWithSubjectInfo
+from repository.models.session import Session
 from repository.models.subject import SubjectCreate, Subject
+from repository.utils.auth.authorization_handler import get_current_user
+from repository.utils.auth.generate_token import AuthSessionLogin
 
 router = APIRouter(prefix="/subject", tags=["Subject"])
 
@@ -15,8 +20,9 @@ async def create_subject(subject: SubjectCreate) -> Subject:
     return obj.subject
 
 
+# AuthSessionLogin equivale a SessionCreate
 @router.post("/session")
-async def create_session(info: SessionCreate) -> SessionWithSubjectInfo:
+async def create_session(info: Annotated[AuthSessionLogin, Depends()]) -> str:
     try:
         return await crud_subject_organization_link.create_session(info)
     except ValueError as e:
@@ -24,7 +30,9 @@ async def create_session(info: SessionCreate) -> SessionWithSubjectInfo:
 
 
 @router.post("/session/role")
-async def add_role(role: RoleEnum) -> Session:
+async def add_role(
+    role: RoleEnum, _: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
+) -> Session:
     try:
         link = await crud_subject_organization_link.get_and_verify_session(
             "username", "organization"  # TODO: Get from session
