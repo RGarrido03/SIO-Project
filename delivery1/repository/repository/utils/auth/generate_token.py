@@ -32,7 +32,7 @@ class AuthSessionLogin(OAuth2PasswordRequestForm):
 
 def create_token(session: SessionWithSubjectInfo) -> str:
     payload = {
-        "sub": session.id,
+        "sub": str(session.id),
         "username": session.username,
         "organization": session.organization,
         "exp": session.expires,
