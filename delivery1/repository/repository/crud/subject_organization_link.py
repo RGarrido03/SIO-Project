@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import cast
 
 from cryptography.hazmat.primitives._serialization import Encoding, PublicFormat
 
@@ -26,33 +27,37 @@ class CRUDSubjectOrganizationLink(
             if rel is None:
                 raise ValueError("Subject not found")
 
-            if info.public not in [pk.key for pk in rel.subject.public_keys]:
+            (private_key, public_key) = load_private_key(
+                await info.credentials.read(), info.password
+            )
+
+            if public_key.public_bytes(
+                Encoding.PEM, PublicFormat.PKCS1
+            ).decode() not in [pk.key for pk in rel.subject.public_keys]:
                 raise ValueError("Public key not found in user keys")
 
-            decrypted_private = load_private_key(info.private, info.password)
-            if (
-                decrypted_private.public_key().public_bytes(
-                    Encoding.PEM, PublicFormat.PKCS1
-                )
-                != rel.publickey.key.encode()
-            ):
-                raise ValueError(
-                    "Public key in the database does not match private key"
-                )
-
-        rel.session = Session(keys=[info.private, info.public])
-        await self.update(
-            (info.organization, info.username),
-            SubjectOrganizationLinkCreate.model_validate(rel),
+        rel.session = Session(  # TODO: Generate key
+            keys=["lorem", "ipsum"],
         )
 
-        s = SessionWithSubjectInfo(
-            **rel.session.model_dump(),
-            username=info.username,
-            organization=info.organization
+        rel = await self.update(
+            (info.username, info.organization),
+            rel,  # type: ignore
         )
 
-        return create_token(s)
+        # Not null checks, however, this will never be None
+        # I'm doing this because otherwise PyCharm yells at me
+        rel = cast(SubjectOrganizationLink, rel)
+        if rel.session is None:
+            raise ValueError("Session not created")
+
+        return create_token(
+            SessionWithSubjectInfo(
+                **rel.session.model_dump(),
+                username=info.username,
+                organization=info.organization
+            )
+        )
 
     async def get_and_verify_session(
         self, username: str, organization: str
