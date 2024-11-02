@@ -1,11 +1,12 @@
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Depends
+from starlette.responses import Response
 
 from repository.crud.subject import crud_subject
 from repository.crud.subject_organization_link import crud_subject_organization_link
-from repository.models import SubjectOrganizationLink
 from repository.models.permission import RoleEnum
+from repository.models.relations import SubjectOrganizationLink
 from repository.models.session import Session
 from repository.models.subject import SubjectCreate, Subject
 from repository.utils.auth.authorization_handler import get_current_user
@@ -22,9 +23,12 @@ async def create_subject(subject: SubjectCreate) -> Subject:
 
 # AuthSessionLogin equivale a SessionCreate
 @router.post("/session")
-async def create_session(info: Annotated[AuthSessionLogin, Depends()]) -> str:
+async def create_session(info: Annotated[AuthSessionLogin, Depends()]) -> Response:
     try:
-        return await crud_subject_organization_link.create_session(info)
+        token_enc = await crud_subject_organization_link.create_session(info)
+        response = Response(content=token_enc, media_type="application/octet-stream")
+        response.headers["Content-Disposition"] = "attachment; filename=session"
+        return response
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
