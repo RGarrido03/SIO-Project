@@ -9,7 +9,8 @@ from repository.models.relations import (
     SubjectOrganizationLink,
     SubjectOrganizationLinkCreate,
 )
-from repository.models.session import Session, SessionCreate, SessionWithSubjectInfo
+from repository.models.session import Session, SessionWithSubjectInfo
+from repository.utils.auth.generate_token import AuthSessionLogin, create_token
 from repository.utils.encryption import load_private_key
 
 
@@ -19,7 +20,7 @@ class CRUDSubjectOrganizationLink(
     def __init__(self) -> None:
         super().__init__(SubjectOrganizationLink)
 
-    async def create_session(self, info: SessionCreate) -> SessionWithSubjectInfo:
+    async def create_session(self, info: AuthSessionLogin) -> str:
         async with get_session() as session:
             rel = await self.get((info.username, info.organization), session)
             if rel is None:
@@ -28,25 +29,30 @@ class CRUDSubjectOrganizationLink(
             if info.public not in [pk.key for pk in rel.subject.public_keys]:
                 raise ValueError("Public key not found in user keys")
 
-        decrypted_private = load_private_key(info.private, info.password)
-        if (
-            decrypted_private.public_key().public_bytes(
-                Encoding.PEM, PublicFormat.PKCS1
-            )
-            != rel.publickey.key.encode()
-        ):
-            raise ValueError("Public key in the database does not match private key")
+            decrypted_private = load_private_key(info.private, info.password)
+            if (
+                decrypted_private.public_key().public_bytes(
+                    Encoding.PEM, PublicFormat.PKCS1
+                )
+                != rel.publickey.key.encode()
+            ):
+                raise ValueError(
+                    "Public key in the database does not match private key"
+                )
 
         rel.session = Session(keys=[info.private, info.public])
         await self.update(
             (info.organization, info.username),
             SubjectOrganizationLinkCreate.model_validate(rel),
         )
-        return SessionWithSubjectInfo(
+
+        s = SessionWithSubjectInfo(
             **rel.session.model_dump(),
             username=info.username,
             organization=info.organization
         )
+
+        return create_token(s)
 
     async def get_and_verify_session(
         self, username: str, organization: str
