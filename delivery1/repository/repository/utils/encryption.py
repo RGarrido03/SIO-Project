@@ -7,10 +7,13 @@ from cryptography.hazmat.primitives.asymmetric.types import (
 )
 
 
-def load_private_key(private_key: str, password: str | None = None) -> PrivateKeyTypes:
-    return serialization.load_ssh_private_key(
-        private_key.encode(), password=password.encode() if password else None
+def load_private_key(
+    private_key: bytes, password: str | None = None
+) -> tuple[PrivateKeyTypes, PublicKeyTypes]:
+    pk = serialization.load_ssh_private_key(
+        private_key, password=password.encode() if password else None
     )
+    return pk, pk.public_key()
 
 
 def load_public_key(public_key: str) -> PublicKeyTypes:
