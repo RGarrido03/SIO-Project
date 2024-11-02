@@ -64,8 +64,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, PrimaryKeyType]):
         if db_obj is None:
             return None
 
-        new_data = obj.model_dump(exclude_unset=True)
-        db_obj.sqlmodel_update(new_data)
+        db_obj.sqlmodel_update(obj)
 
         return await self._add_to_db(db_obj)
 
