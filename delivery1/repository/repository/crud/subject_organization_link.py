@@ -12,7 +12,7 @@ from repository.models.relations import (
 )
 from repository.models.session import Session, SessionWithSubjectInfo
 from repository.utils.auth.generate_token import AuthSessionLogin, create_token
-from repository.utils.encryption import load_private_key
+from repository.utils.encryption import load_private_key, encrypt
 
 
 class CRUDSubjectOrganizationLink(
@@ -21,7 +21,7 @@ class CRUDSubjectOrganizationLink(
     def __init__(self) -> None:
         super().__init__(SubjectOrganizationLink)
 
-    async def create_session(self, info: AuthSessionLogin) -> str:
+    async def create_session(self, info: AuthSessionLogin) -> bytes:
         async with get_session() as session:
             rel = await self.get((info.username, info.organization), session)
             if rel is None:
@@ -51,13 +51,15 @@ class CRUDSubjectOrganizationLink(
         if rel.session is None:
             raise ValueError("Session not created")
 
-        return create_token(
+        token = create_token(
             SessionWithSubjectInfo(
                 **rel.session.model_dump(),
                 username=info.username,
                 organization=info.organization
             )
         )
+
+        return encrypt(token.encode(), public_key)
 
     async def get_and_verify_session(
         self, username: str, organization: str
