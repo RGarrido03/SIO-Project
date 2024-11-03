@@ -1,13 +1,15 @@
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Callable, Awaitable
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 from fastapi.staticfiles import StaticFiles
+
 from repository.config.database import init_db
 from repository.config.settings import settings
 from repository.routers import router
+from repository.utils.middleware import decrypt_request
 
 
 @asynccontextmanager
@@ -34,6 +36,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def encryption_middleware(
+    request: Request,
+    call_next: Callable[[Request], Awaitable[Response]],
+) -> Response:
+    if request.method not in ["GET", "DELETE"]:
+        request = await decrypt_request(request)
+
+    response = await call_next(request)
+    return response
 
 
 app.mount(settings.STATIC_PATH, StaticFiles(directory="static"), name="static")
