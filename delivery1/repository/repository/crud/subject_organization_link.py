@@ -12,7 +12,8 @@ from repository.models.relations import (
 )
 from repository.models.session import Session, SessionWithSubjectInfo
 from repository.utils.auth.generate_token import AuthSessionLogin, create_token
-from repository.utils.encryption import load_private_key, encrypt_asymmetric
+from repository.utils.encryption.encryptors import encrypt_asymmetric
+from repository.utils.encryption.loaders import load_private_key
 
 
 class CRUDSubjectOrganizationLink(

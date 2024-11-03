@@ -5,7 +5,7 @@ from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPubl
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from repository.utils.encryption import load_private_key
+from repository.utils.encryption.loaders import load_private_key
 
 
 class Settings(BaseSettings):
