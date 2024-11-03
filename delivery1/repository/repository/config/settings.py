@@ -30,6 +30,7 @@ class Settings(BaseSettings):
             os.getenv("PRIVATE_KEY", "").encode(), os.getenv("PRIVATE_KEY_PASSWORD", "")
         )
     )
+    INITIALIZATION_VECTOR: bytes = b"\xae7\x8b\xccL\xc0?j7Z\xfb\xca\xbb\x81\xfa\xf7"
 
     # Auth
     AUTH_SECRET_KEY: str = (
