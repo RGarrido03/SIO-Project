@@ -7,7 +7,24 @@ from repository.config.settings import settings
 from repository.utils.encryption.encryptors import decrypt_asymmetric, decrypt_symmetric
 
 
-async def decrypt_request(request: Request) -> Request:
+async def decrypt_request_token(request: Request) -> Request:
+    if request.headers.get("Encryption") != "session":
+        return request
+
+    auth_header = request.headers.get("Authorization")
+    if auth_header is None:
+        return request
+
+    token = decrypt_asymmetric(auth_header.encode(), settings.KEYS[0])
+
+    headers = dict(request.scope["headers"])
+    headers[b"Authorization"] = token
+    request.scope["headers"] = [(k, v) for k, v in headers.items()]
+
+    return request
+
+
+async def decrypt_request_body(request: Request) -> Request:
     data = await request.body()
     if not data:
         return request
@@ -20,15 +37,8 @@ async def decrypt_request(request: Request) -> Request:
             if auth_header is None:
                 return request
 
-            token = decrypt_asymmetric(auth_header.encode(), settings.KEYS[0])
-
-            # Update headers with decrypted token
-            headers = dict(request.scope["headers"])
-            headers[b"Authorization"] = token
-            request.scope["headers"] = [(k, v) for k, v in headers.items()]
-
             payload: dict[str, Any] = jwt.decode(
-                token.decode(),
+                auth_header,
                 settings.AUTH_SECRET_KEY,
                 algorithms=[settings.AUTH_ALGORITHM],
             )
