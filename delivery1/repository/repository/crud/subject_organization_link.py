@@ -12,7 +12,7 @@ from repository.models.relations import (
 )
 from repository.models.session import Session, SessionWithSubjectInfo
 from repository.utils.auth.generate_token import AuthSessionLogin, create_token
-from repository.utils.encryption import load_private_key, encrypt
+from repository.utils.encryption import load_private_key, encrypt_asymmetric
 
 
 class CRUDSubjectOrganizationLink(
@@ -59,7 +59,7 @@ class CRUDSubjectOrganizationLink(
             )
         )
 
-        return encrypt(token.encode(), public_key)
+        return encrypt_asymmetric(token.encode(), public_key)
 
     async def get_and_verify_session(
         self, username: str, organization: str
