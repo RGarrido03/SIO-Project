@@ -4,6 +4,8 @@ services:
       context: ./repository
       dockerfile: Dockerfile.prod
     restart: unless-stopped
+    env_file:
+      - ./repository/.env
     ports:
       - "8000:8000"
     volumes:
