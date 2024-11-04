@@ -1,10 +1,13 @@
+import base64
 from pathlib import Path
 
 import requests
 import typer
 
-from utils.consts import ORGANIZATION_URL
-from utils.encryption.encryptors import encrypt_dict
+from utils.consts import ORGANIZATION_URL, SUBJECT_URL
+from utils.encryption.encryptors import encrypt_dict, decrypt_asymmetric
+from utils.encryption.loaders import load_private_key
+from utils.storage import get_storage_dir
 
 app = typer.Typer()
 
@@ -52,3 +55,48 @@ def list_organizations():
     print("Organizations:")
     for org in body:
         print(" - " + org["name"])
+
+
+@app.command("rep_create_session")
+def create_session(
+    organization: str,
+    username: str,
+    password: str,
+    private_key_file: Path,
+    session_file: Path | None = None,
+):
+    with private_key_file.open() as f:
+        private_key = f.read()
+
+    obj: dict[str, str] = {
+        "organization": organization,
+        "username": username,
+        "password": password,
+        "credentials": base64.encodebytes(private_key.encode()).decode(),
+    }
+    (key, data) = encrypt_dict(obj)
+
+    response = requests.post(
+        f"{SUBJECT_URL}/session",
+        data=data,
+        headers={
+            "Content-Type": "application/json",
+            "Encryption": "repository",
+            "Authorization": key,
+        },
+    )
+
+    private = load_private_key(private_key.encode(), password)[0]
+    token = decrypt_asymmetric(response.content, private).decode()
+
+    session_file = (
+        session_file or get_storage_dir() / "sessions" / organization / "username.txt"
+    )
+
+    if not session_file.parent.exists():
+        session_file.parent.mkdir(parents=True)
+
+    with session_file.open("w+") as f:
+        f.write(token)
+
+    print(f"Session created for organization {organization} and user {username}")
