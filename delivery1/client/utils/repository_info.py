@@ -1,11 +1,11 @@
 import base64
-from pathlib import Path
 
 import requests
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 
 from utils.consts import REPOSITORY_URL
 from utils.encryption.loaders import load_public_key
+from utils.storage import get_storage_dir
 
 
 def _fetch_repository_public_key() -> str:
@@ -21,7 +21,7 @@ def _fetch_repository_iv() -> bytes:
 
 
 def get_repository_public_key() -> RSAPublicKey:
-    file = Path(__file__).parent.parent / "storage" / "repository" / "public_key.pem"
+    file = get_storage_dir() / "repository" / "public_key.pem"
 
     if file.exists():
         with open(file, "r") as f:
@@ -34,7 +34,7 @@ def get_repository_public_key() -> RSAPublicKey:
 
 
 def get_repository_iv() -> bytes:
-    file = Path(__file__).parent.parent / "storage" / "repository" / "iv.txt"
+    file = get_storage_dir() / "repository" / "iv.txt"
 
     if file.exists():
         with open(file, "rb") as f:
