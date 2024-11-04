@@ -1,3 +1,4 @@
+import base64
 from typing import Any
 
 import jwt
@@ -15,7 +16,8 @@ async def decrypt_request_token(request: Request) -> Request:
     if auth_header is None:
         return request
 
-    token = decrypt_asymmetric(auth_header.encode(), settings.KEYS[0])
+    auth_bytes = base64.decodebytes(auth_header.encode())
+    token = decrypt_asymmetric(auth_bytes, settings.KEYS[0])
 
     headers = dict(request.scope["headers"])
     headers[b"Authorization"] = token
@@ -26,8 +28,11 @@ async def decrypt_request_token(request: Request) -> Request:
 
 async def decrypt_request_body(request: Request) -> Request:
     data = await request.body()
+    data = base64.decodebytes(data)
     if not data:
         return request
+
+    print("pixola", data)
 
     match request.headers.get("Encryption"):
         case "repository":
@@ -47,5 +52,6 @@ async def decrypt_request_body(request: Request) -> Request:
         case _:
             return request
 
+    print("pixa", data)
     request._body = data
     return request
