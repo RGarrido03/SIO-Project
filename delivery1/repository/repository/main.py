@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from repository.config.database import init_db
 from repository.config.settings import settings
 from repository.routers import router
-from repository.utils.middleware import decrypt_request_body, decrypt_request_token
+from repository.utils.middleware import decrypt_request_body, decrypt_request_key
 
 
 @asynccontextmanager
@@ -43,8 +43,8 @@ async def encryption_middleware(
     request: Request,
     call_next: Callable[[Request], Awaitable[Response]],
 ) -> Response:
-    request = await decrypt_request_token(request)
-    request = await decrypt_request_body(request)
+    token = await decrypt_request_key(request)
+    request = await decrypt_request_body(request, token)
     response = await call_next(request)
     return response
 
