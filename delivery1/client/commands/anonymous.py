@@ -29,12 +29,15 @@ def create_organization(
         },
     }
 
+    (key, data) = encrypt_dict(obj)
+
     response = requests.post(
         "http://localhost:8000/organization",
-        json=encrypt_dict(obj),
+        data=data,
         headers={
             "Content-Type": "application/json",
             "Encryption": "repository",
+            "Authorization": key,
         },
     )
     body = response.json()

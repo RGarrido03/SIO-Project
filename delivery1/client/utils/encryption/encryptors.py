@@ -21,14 +21,19 @@ def encrypt_symmetric(data: bytes, key: bytes, iv: bytes) -> bytes:
 
 def encrypt_asymmetric(data: bytes, public_key: RSAPublicKey) -> bytes:
     data = public_key.encrypt(data, padding.PKCS1v15())
-    return base64.encodebytes(data)
+    return (
+        base64.encodebytes(data)
+        .replace(b"\n", b"\\n")
+        .replace(b"\S", b"\\S")
+        .replace(b"\r", b"\\r")
+    )
 
 
 def encrypt_dict(
     data: dict[str, Any],
     public_key: RSAPublicKey = get_repository_public_key(),
     iv: bytes = get_repository_iv(),
-) -> dict[str, str]:
+) -> tuple[str, str]:
     """
     Encrypts a dictionary using a symmetric key and encrypts the symmetric key using an asymmetric key
 
@@ -48,7 +53,7 @@ def encrypt_dict(
     data_bytes = encrypt_symmetric(data_bytes, key, iv).decode()
 
     key_bytes = encrypt_asymmetric(key, public_key).decode()
-    return {"key": key_bytes, "data": data_bytes}
+    return key_bytes, data_bytes
 
 
 def decrypt_symmetric(data: bytes, key: bytes, iv: bytes) -> bytes:
