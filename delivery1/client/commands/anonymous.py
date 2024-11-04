@@ -90,7 +90,8 @@ def create_session(
     token = decrypt_asymmetric(response.content, private).decode()
 
     session_file = (
-        session_file or get_storage_dir() / "sessions" / organization / "username.txt"
+        session_file
+        or get_storage_dir() / "sessions" / organization / f"{username}.txt"
     )
 
     if not session_file.parent.exists():
