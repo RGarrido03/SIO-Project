@@ -1,3 +1,5 @@
+import base64
+
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
@@ -27,14 +29,17 @@ def encrypt_symmetric(data: bytes, key: bytes, iv: bytes) -> bytes:
     mode = modes.CTR(iv)
     encryptor = Cipher(algorithm, mode).encryptor()
 
-    return encryptor.update(data) + encryptor.finalize()
+    data = encryptor.update(data) + encryptor.finalize()
+    return base64.encodebytes(data)
 
 
 def encrypt_asymmetric(data: bytes, public_key: RSAPublicKey) -> bytes:
-    return public_key.encrypt(data, padding.PKCS1v15())
+    data = public_key.encrypt(data, padding.PKCS1v15())
+    return base64.encodebytes(data)
 
 
 def decrypt_symmetric(data: bytes, key: bytes, iv: bytes) -> bytes:
+    data = base64.decodebytes(data)
     algorithm = algorithms.AES(key)
     mode = modes.CTR(iv)
     decryptor = Cipher(algorithm, mode).decryptor()
@@ -43,4 +48,5 @@ def decrypt_symmetric(data: bytes, key: bytes, iv: bytes) -> bytes:
 
 
 def decrypt_asymmetric(data: bytes, private_key: RSAPrivateKey) -> bytes:
+    data = base64.decodebytes(data)
     return private_key.decrypt(data, padding.PKCS1v15())
