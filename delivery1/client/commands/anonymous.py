@@ -3,6 +3,7 @@ from pathlib import Path
 import requests
 import typer
 
+from utils.consts import ORGANIZATION_URL
 from utils.encryption.encryptors import encrypt_dict
 
 app = typer.Typer()
@@ -32,7 +33,7 @@ def create_organization(
     (key, data) = encrypt_dict(obj)
 
     response = requests.post(
-        "http://localhost:8000/organization",
+        ORGANIZATION_URL,
         data=data,
         headers={
             "Content-Type": "application/json",
@@ -46,7 +47,7 @@ def create_organization(
 
 @app.command("rep_list_orgs")
 def list_organizations():
-    response = requests.get("http://localhost:8000/organization")
+    response = requests.get(ORGANIZATION_URL)
     body = response.json()
     print("Organizations:")
     for org in body:
