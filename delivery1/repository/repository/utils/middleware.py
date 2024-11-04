@@ -20,6 +20,10 @@ async def decrypt_request_key(request: Request) -> bytes | None:
     )
     token = decrypt_asymmetric(base64.decodebytes(auth_header_bytes), settings.KEYS[0])
 
+    headers = dict(request.scope["headers"])
+    headers[b"Authorization"] = token
+    request.scope["headers"] = [(k, v) for k, v in headers.items()]
+
     if encryption != "session":
         return token
 
@@ -31,13 +35,13 @@ async def decrypt_request_key(request: Request) -> bytes | None:
     return payload.get("keys", [])[0].encode()
 
 
-async def decrypt_request_body(request: Request, token: bytes | None) -> Request:
+async def decrypt_request_body(request: Request, token: bytes | None) -> None:
     if token is None:
-        return request
+        return
 
     data = await request.body()
     if not data:
-        return request
+        return
 
     match request.headers.get("Encryption"):
         case "repository":
@@ -52,7 +56,6 @@ async def decrypt_request_body(request: Request, token: bytes | None) -> Request
             key: str = payload.get("keys", [])[0]
             data = decrypt_symmetric(data, key.encode())
         case _:
-            return request
+            return
 
     request._body = data
-    return request
