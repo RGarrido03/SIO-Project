@@ -1,3 +1,4 @@
+import base64
 from datetime import datetime
 from typing import cast
 
@@ -10,8 +11,8 @@ from repository.models.relations import (
     SubjectOrganizationLink,
     SubjectOrganizationLinkCreate,
 )
-from repository.models.session import Session, SessionWithSubjectInfo
-from repository.utils.auth.generate_token import AuthSessionLogin, create_token
+from repository.models.session import Session, SessionWithSubjectInfo, SessionCreate
+from repository.utils.auth.generate_token import create_token
 from repository.utils.encryption.encryptors import encrypt_asymmetric
 from repository.utils.encryption.loaders import load_private_key
 
@@ -22,14 +23,15 @@ class CRUDSubjectOrganizationLink(
     def __init__(self) -> None:
         super().__init__(SubjectOrganizationLink)
 
-    async def create_session(self, info: AuthSessionLogin) -> bytes:
+    async def create_session(self, info: SessionCreate) -> bytes:
+        credentials_bytes = base64.decodebytes(info.credentials.encode())
         async with get_session() as session:
             rel = await self.get((info.username, info.organization), session)
             if rel is None:
                 raise ValueError("Subject not found")
 
             (private_key, public_key) = load_private_key(
-                await info.credentials.read(), info.password
+                credentials_bytes, info.password
             )
 
             if public_key.public_bytes(
@@ -59,6 +61,7 @@ class CRUDSubjectOrganizationLink(
             )
         )
 
+        print("lalalallalala", token)
         return encrypt_asymmetric(token.encode(), public_key)
 
     async def get_and_verify_session(

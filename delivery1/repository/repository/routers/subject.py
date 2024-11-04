@@ -7,10 +7,9 @@ from repository.crud.subject import crud_subject
 from repository.crud.subject_organization_link import crud_subject_organization_link
 from repository.models.permission import RoleEnum
 from repository.models.relations import SubjectOrganizationLink
-from repository.models.session import Session
+from repository.models.session import Session, SessionCreate
 from repository.models.subject import SubjectCreate, Subject
 from repository.utils.auth.authorization_handler import get_current_user
-from repository.utils.auth.generate_token import AuthSessionLogin
 
 router = APIRouter(prefix="/subject", tags=["Subject"])
 
@@ -21,9 +20,8 @@ async def create_subject(subject: SubjectCreate) -> Subject:
     return obj.subject
 
 
-# AuthSessionLogin equivale a SessionCreate
 @router.post("/session")
-async def create_session(info: Annotated[AuthSessionLogin, Depends()]) -> Response:
+async def create_session(info: SessionCreate) -> Response:
     try:
         token_enc = await crud_subject_organization_link.create_session(info)
         response = Response(content=token_enc, media_type="application/octet-stream")
