@@ -1,3 +1,4 @@
 storage/
 !storage/.gitkeep
 !storage/repository/.gitkeep
+!storage/sessions/.gitkeep
