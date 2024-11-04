@@ -3,6 +3,8 @@ from pathlib import Path
 import requests
 import typer
 
+from utils.encryption.encryptors import encrypt_dict
+
 app = typer.Typer()
 
 
@@ -27,7 +29,14 @@ def rep_create_org(
         },
     }
 
-    response = requests.post("http://localhost:8000/organization", json=obj)
+    response = requests.post(
+        "http://localhost:8000/organization",
+        data=encrypt_dict(obj),
+        headers={
+            "Content-Type": "application/json",
+            "Encryption": "repository",
+        },
+    )
     body = response.json()
     print(f"Created organization {body['name']}")
 
