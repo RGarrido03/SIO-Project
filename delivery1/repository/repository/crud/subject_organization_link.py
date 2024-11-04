@@ -37,9 +37,8 @@ class CRUDSubjectOrganizationLink(
             ).decode() not in [pk.key for pk in rel.subject.public_keys]:
                 raise ValueError("Public key not found in user keys")
 
-        rel.session = Session(  # TODO: Generate key
-            keys=["lorem", "ipsum"],
-        )
+        rel.session = Session(keys=[])
+        rel.session.keys = ["".join(str(rel.session.id).split("-"))]
 
         rel = await self.update(
             (info.username, info.organization),
