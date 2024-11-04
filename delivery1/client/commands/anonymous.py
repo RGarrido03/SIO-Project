@@ -8,8 +8,8 @@ from utils.encryption.encryptors import encrypt_dict
 app = typer.Typer()
 
 
-@app.command()
-def rep_create_org(
+@app.command("rep_create_org")
+def create_organization(
     organization: str,
     username: str,
     name: str,
@@ -41,5 +41,10 @@ def rep_create_org(
     print(f"Created organization {body['name']}")
 
 
-if __name__ == "__main__":
-    app()
+@app.command("rep_list_orgs")
+def list_organizations():
+    response = requests.get("http://localhost:8000/organization")
+    body = response.json()
+    print("Organizations:")
+    for org in body:
+        print(" - " + org["name"])
