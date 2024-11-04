@@ -43,7 +43,7 @@ async def encryption_middleware(
     request: Request,
     call_next: Callable[[Request], Awaitable[Response]],
 ) -> Response:
-    token = await decrypt_request_key(request)
+    (request, token) = await decrypt_request_key(request)
     await decrypt_request_body(request, token)
     response = await call_next(request)
     return response
