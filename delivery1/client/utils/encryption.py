@@ -1,4 +1,6 @@
 import base64
+import json
+from typing import Any
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
@@ -7,6 +9,8 @@ from cryptography.hazmat.primitives.asymmetric.types import (
     PublicKeyTypes,
 )
 from cryptography.hazmat.primitives.ciphers import algorithms, modes, Cipher
+
+from utils.repository_info import get_repository_public_key
 
 
 def load_private_key(
@@ -36,6 +40,13 @@ def encrypt_symmetric(data: bytes, key: bytes, iv: bytes) -> bytes:
 def encrypt_asymmetric(data: bytes, public_key: RSAPublicKey) -> bytes:
     data = public_key.encrypt(data, padding.PKCS1v15())
     return base64.encodebytes(data)
+
+
+def encrypt_dict(
+    data: dict[str, Any],
+    public_key: RSAPublicKey = get_repository_public_key(),
+) -> bytes:
+    return encrypt_asymmetric(json.dumps(data).encode(), public_key)
 
 
 def decrypt_symmetric(data: bytes, key: bytes, iv: bytes) -> bytes:
