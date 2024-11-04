@@ -61,8 +61,8 @@ class CRUDSubjectOrganizationLink(
             )
         )
 
-        print("lalalallalala", token)
-        return encrypt_asymmetric(token.encode(), public_key)
+        token_enc = encrypt_asymmetric(token.encode(), public_key)
+        return base64.encodebytes(token_enc)
 
     async def get_and_verify_session(
         self, username: str, organization: str
