@@ -28,5 +28,4 @@ class SessionCreate(SQLModel):
     organization: str
     username: str
     password: str
-    private: str
-    public: str
+    credentials: str
