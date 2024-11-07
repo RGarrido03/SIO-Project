@@ -21,19 +21,14 @@ def encrypt_symmetric(data: bytes, key: bytes, iv: bytes) -> bytes:
 
 def encrypt_asymmetric(data: bytes, public_key: RSAPublicKey) -> bytes:
     data = public_key.encrypt(data, padding.PKCS1v15())
-    return (
-        base64.encodebytes(data)
-        .replace(b"\n", b"\\n")
-        .replace(b"\S", b"\\S")
-        .replace(b"\r", b"\\r")
-    )
+    return base64.encodebytes(data).replace(b"\n", b"\\n").replace(b"\r", b"\\r")
 
 
-def encrypt_dict(
-    data: dict[str, Any],
+def encrypt_dict_repository(
+    data: dict[str, Any] | None,
     public_key: RSAPublicKey = get_repository_public_key(),
     iv: bytes = get_repository_iv(),
-) -> tuple[str, str]:
+) -> tuple[str, str | None]:
     """
     Encrypts a dictionary using a symmetric key and encrypts the symmetric key using an asymmetric key
 
@@ -48,11 +43,29 @@ def encrypt_dict(
     :rtype: dict[str, str]
     """
     key = os.urandom(16)
+    key_bytes = encrypt_asymmetric(key, public_key).decode()
+
+    if data is None:
+        return key_bytes, None
 
     data_bytes = json.dumps(data).encode()
     data_bytes = encrypt_symmetric(data_bytes, key, iv).decode()
+    return key_bytes, data_bytes
 
-    key_bytes = encrypt_asymmetric(key, public_key).decode()
+
+def encrypt_dict_session(
+    data: dict[str, Any] | None,
+    session_file: bytes,
+    public_key: RSAPublicKey = get_repository_public_key(),
+    iv: bytes = get_repository_iv(),
+) -> tuple[str, str | None]:
+    key_bytes = encrypt_asymmetric(session_file, public_key).decode()
+
+    if data is None:
+        return key_bytes, None
+
+    data_bytes = json.dumps(data).encode()
+    data_bytes = encrypt_symmetric(data_bytes, key, iv).decode()
     return key_bytes, data_bytes
 
 
