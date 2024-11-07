@@ -1,7 +1,8 @@
 # sio_2425_project
 
 # Group members
-- A
-- B
-- C
+- Rubén Garrido - 107927
+- Bruno Lopes - 68264
+- André Pedro Ribeiro - 112974
+- Violeta Batista Ramos - 113170
 
