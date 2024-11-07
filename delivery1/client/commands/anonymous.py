@@ -5,7 +5,7 @@ import requests
 import typer
 
 from utils.consts import ORGANIZATION_URL, SUBJECT_URL
-from utils.encryption.encryptors import encrypt_dict, decrypt_asymmetric
+from utils.encryption.encryptors import encrypt_dict_repository, decrypt_asymmetric
 from utils.encryption.loaders import load_private_key
 from utils.storage import get_storage_dir
 
@@ -33,7 +33,7 @@ def create_organization(
         },
     }
 
-    (key, data) = encrypt_dict(obj)
+    (key, data) = encrypt_dict_repository(obj)
 
     response = requests.post(
         ORGANIZATION_URL,
@@ -74,7 +74,7 @@ def create_session(
         "password": password,
         "credentials": base64.encodebytes(private_key.encode()).decode(),
     }
-    (key, data) = encrypt_dict(obj)
+    (key, data) = encrypt_dict_repository(obj)
 
     response = requests.post(
         f"{SUBJECT_URL}/session",
