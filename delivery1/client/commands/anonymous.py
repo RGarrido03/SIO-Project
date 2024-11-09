@@ -3,6 +3,7 @@ from pathlib import Path
 
 import requests
 import typer
+import sys
 
 from utils.consts import ORGANIZATION_URL, SUBJECT_URL
 from utils.encryption.encryptors import encrypt_dict_repository, decrypt_asymmetric
@@ -101,3 +102,34 @@ def create_session(
         f.write(token)
 
     print(f"Session created for organization {organization} and user {username}")
+
+@app.command("rep_get_file")
+def get_file(
+    file_handle: str,
+    file: Path | None
+):
+    response = requests.get(
+        f"{SUBJECT_URL}/files/{file_handle}"
+    )
+
+    if response.status_code == 200:
+        file_content = response.content
+
+        if file:
+            with file.open("wb") as f:
+                f.write(file_content)
+            
+            print(f"File saved in {file}")
+
+        else:
+            sys.stdout.buffer.write(file_content)
+            sys.stdout.flush()
+
+    else:
+        print(f"Failure {response.status_code} retriving {response.text}")
+            
+
+
+
+
+
