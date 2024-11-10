@@ -20,7 +20,9 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
         super().__init__(Document)
 
     async def add_new(self, document: DocumentCreate, file: UploadFile) -> Document:
-        if (sha256(await file.read())) != document.file_handle:
+
+        if (sha256(await file.read()).hexdigest()) != document.file_handle:
+
             raise ValueError("File handle does not match the file content")
 
         path = f"static/{document.organization_name}"

@@ -1,13 +1,13 @@
 from enum import Enum
 
 
-class RoleEnum(Enum):
+class RoleEnum(str,Enum):
     # TODO: Add more
     MANAGERS = "managers"
     USER = "user"
 
 
-class DocumentPermission(Enum):
+class DocumentPermission(str,Enum):
     DOC_ACL = "doc_acl"
     DOC_READ = "doc_read"
     DOC_DELETE = "doc_delete"
