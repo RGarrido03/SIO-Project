@@ -108,25 +108,18 @@ def get_file(
     file_handle: str,
     file: Path | None
 ):
-    response = requests.get(
-        f"{SUBJECT_URL}/files/{file_handle}"
-    )
+    response = requests.get({file_handle})
 
-    if response.status_code == 200:
-        file_content = response.content
+    file_content = response.content
 
-        if file:
-            with file.open("wb") as f:
-                f.write(file_content)
-            
-            print(f"File saved in {file}")
+    if file:
+        with file.open("wb") as f:
+            f.write(file_content)
+    
+        print(f"File saved in {file}")
 
-        else:
-            sys.stdout.buffer.write(file_content)
-            sys.stdout.flush()
-
-    else:
-        print(f"Failure {response.status_code} retriving {response.text}")
+        sys.stdout.buffer.write(file_content)
+        sys.stdout.flush()
             
 
 
