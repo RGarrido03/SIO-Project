@@ -40,6 +40,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, PrimaryKeyType]):
             return obj
 
     async def create(self, obj: CreateSchemaType) -> ModelType:
+
         db_obj = self.model.model_validate(obj)
         return await self._add_to_db(db_obj)
 
