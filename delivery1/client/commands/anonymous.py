@@ -1,13 +1,19 @@
 import base64
+import sys
+from hashlib import sha512
 from pathlib import Path
 
 import requests
 import typer
-import sys
 
 from utils.consts import ORGANIZATION_URL, SUBJECT_URL
-from utils.encryption.encryptors import encrypt_dict_repository, decrypt_asymmetric
+from utils.encryption.encryptors import (
+    encrypt_dict_repository,
+    decrypt_asymmetric,
+    decrypt_symmetric,
+)
 from utils.encryption.loaders import load_private_key
+from utils.repository_info import get_repository_iv
 from utils.storage import get_storage_dir
 
 app = typer.Typer()
@@ -66,6 +72,7 @@ def create_session(
     private_key_file: Path,
     session_file: Path | None = None,
 ):
+    iv = get_repository_iv()
     with private_key_file.open() as f:
         private_key = f.read()
 
@@ -88,11 +95,21 @@ def create_session(
     )
 
     private = load_private_key(private_key.encode(), password)[0]
-    token = decrypt_asymmetric(response.content, private).decode()
 
+    key = decrypt_asymmetric(
+        response.headers["Authorization"]
+        .replace("\\n", "\n")
+        .replace("\\r", "\r")
+        .encode(),
+        private,
+    )
+    token = decrypt_symmetric(response.content, key, iv).decode()
     session_file = (
         session_file
-        or get_storage_dir() / "sessions" / organization / f"{username}.txt"
+        or get_storage_dir()
+        / "sessions"
+        / organization
+        / f".{sha512(username.encode()).hexdigest()}"
     )
 
     if not session_file.parent.exists():
@@ -103,14 +120,10 @@ def create_session(
 
     print(f"Session created for organization {organization} and user {username}")
 
+
 @app.command("rep_get_file")
-def get_file(
-    file_handle: str,
-    file: Path | None
-):
-    response = requests.get(
-        f"{SUBJECT_URL}/files/{file_handle}"
-    )
+def get_file(file_handle: str, file: Path | None):
+    response = requests.get(f"{SUBJECT_URL}/files/{file_handle}")
 
     if response.status_code == 200:
         file_content = response.content
@@ -118,7 +131,7 @@ def get_file(
         if file:
             with file.open("wb") as f:
                 f.write(file_content)
-            
+
             print(f"File saved in {file}")
 
         else:
@@ -127,9 +140,3 @@ def get_file(
 
     else:
         print(f"Failure {response.status_code} retriving {response.text}")
-            
-
-
-
-
-

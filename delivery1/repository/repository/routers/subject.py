@@ -23,9 +23,12 @@ async def create_subject(subject: SubjectCreate) -> Subject:
 @router.post("/session")
 async def create_session(info: SessionCreate) -> Response:
     try:
-        token_enc = await crud_subject_organization_link.create_session(info)
+        key_enc, token_enc = await crud_subject_organization_link.create_session(info)
         response = Response(content=token_enc, media_type="application/octet-stream")
         response.headers["Content-Disposition"] = "attachment; filename=session"
+        response.headers["Authorization"] = (
+            key_enc.decode().replace("\n", "\\n").replace("\r", "\\r")
+        )
         return response
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
