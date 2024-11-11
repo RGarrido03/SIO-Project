@@ -9,7 +9,7 @@ app = typer.Typer()
 
 @app.command("rep_subject_credentials")
 def generate_credentials(password: str, credentials_file: Path) -> None:
-    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=4096)
 
     encrypted_pem_private_key = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
