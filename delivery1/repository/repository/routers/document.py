@@ -2,11 +2,13 @@ import json
 from datetime import datetime
 from typing import Literal, Annotated
 
-from fastapi import APIRouter, UploadFile, HTTPException, Form, File
+from fastapi import APIRouter, UploadFile, HTTPException, Form, File, Security
 
 from repository.crud.document import crud_document
+from repository.models import SubjectOrganizationLink
 from repository.models.document import Document, DocumentCreate, DocumentBase
 from repository.models.permission import RoleEnum, DocumentPermission
+from repository.utils.auth.authorization_handler import get_current_user
 
 router = APIRouter(prefix="/document", tags=["Document"])
 
@@ -22,6 +24,7 @@ async def create_document(
     acl: Annotated[dict | str, Form(media_type="application/json")],
     file: Annotated[UploadFile, File(...)],
     deleter_username: Annotated[str | None, Form(...)] = None,
+    _: SubjectOrganizationLink = Security(get_current_user),
 ) -> Document:
     try:
         acl_dict = json.loads(acl)
@@ -50,7 +53,10 @@ async def create_document(
 
 
 @router.get("/{name}", response_model=DocumentBase)
-async def get_document_metadata(name: str) -> Document:
+async def get_document_metadata(
+    name: str,
+    _: SubjectOrganizationLink = Security(get_current_user),
+) -> Document:
     doc = await crud_document.get_by_name(name)
     if doc is None:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -62,13 +68,17 @@ async def list_documents(
     username: str | None = None,
     date: datetime | None = None,
     date_order: Literal["nt", "ot", "et"] = "nt",
+    _: SubjectOrganizationLink = Security(get_current_user),
 ) -> list[Document]:
     return await crud_document.get_all(username, date, date_order)
 
 
 @router.patch("/{name}/acl/add")
 async def update_document_acl(
-    name: str, role: RoleEnum, permission: DocumentPermission
+    name: str,
+    role: RoleEnum,
+    permission: DocumentPermission,
+    _: SubjectOrganizationLink = Security(get_current_user),
 ) -> Document:
     doc = await crud_document.get_by_name(name)
     if doc is None:
@@ -78,7 +88,10 @@ async def update_document_acl(
 
 @router.patch("/{name}/acl/remove")
 async def remove_document_acl(
-    name: str, role: RoleEnum, permission: DocumentPermission
+    name: str,
+    role: RoleEnum,
+    permission: DocumentPermission,
+    _: SubjectOrganizationLink = Security(get_current_user),
 ) -> Document:
     doc = await crud_document.get_by_name(name)
     if doc is None:
@@ -87,10 +100,13 @@ async def remove_document_acl(
 
 
 @router.delete("/{name}")
-async def delete_document(name: str) -> str:
+async def delete_document(
+    name: str,
+    link: SubjectOrganizationLink = Security(get_current_user),
+) -> str:
     doc = await crud_document.get_by_name(name)
     if doc is None:
         raise HTTPException(status_code=404, detail="Document not found")
-    await crud_document.delete(doc.document_handle)
+    await crud_document.delete(doc.document_handle, link.subject.username)
     # TODO: Set deleter username
     return doc.file_handle or ""

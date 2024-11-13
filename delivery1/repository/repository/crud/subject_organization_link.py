@@ -1,6 +1,5 @@
 import base64
 import os
-from datetime import datetime
 from typing import cast
 
 from cryptography.hazmat.primitives._serialization import Encoding, PublicFormat
@@ -69,21 +68,6 @@ class CRUDSubjectOrganizationLink(
         key_enc = encrypt_asymmetric(key, public_key)
         key_enc = base64.encodebytes(key_enc)
         return key_enc, token_enc
-
-    async def get_and_verify_session(
-        self, username: str, organization: str
-    ) -> SubjectOrganizationLink:
-        result = await self.get((username, organization))
-        if result is None:
-            raise ValueError("Subject not found")
-        # TODO: These changes should come from the session validators (some auth middleware)
-        if not result.subject.active:
-            raise ValueError("Subject is not active")
-        if result.session is None:
-            raise ValueError("Session not found")
-        if result.session.expires < datetime.now():
-            raise ValueError("Session expired")
-        return result
 
     async def manage_role_in_session(
         self, obj: SubjectOrganizationLink, role: RoleEnum, add: bool
