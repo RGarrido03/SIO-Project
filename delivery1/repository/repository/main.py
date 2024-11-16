@@ -52,8 +52,10 @@ async def encryption_middleware(
 
     response = await call_next(request)
 
-    if request.state.public_key is not None:
+    try:
         await encrypt_response(response, request.state.public_key)
+    except AttributeError:
+        pass
     return response
 
 
