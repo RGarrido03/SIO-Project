@@ -1,11 +1,20 @@
 import base64
+import os
 from typing import Any
 
 import jwt
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 from fastapi import Request
+from starlette.responses import Response
 
 from repository.config.settings import settings
-from repository.utils.encryption.encryptors import decrypt_asymmetric, decrypt_symmetric
+from repository.utils.encoding import b64_encode_and_escape, b64_decode_and_unescape
+from repository.utils.encryption.encryptors import (
+    decrypt_asymmetric,
+    decrypt_symmetric,
+    encrypt_symmetric,
+    encrypt_asymmetric,
+)
 
 
 async def decrypt_request_key(request: Request) -> tuple[Request, bytes | None]:
@@ -15,10 +24,8 @@ async def decrypt_request_key(request: Request) -> tuple[Request, bytes | None]:
     if (auth_header := request.headers.get("Authorization")) is None:
         return request, None
 
-    auth_header_bytes = (
-        auth_header.encode().replace(b"\\n", b"\n").replace(b"\\r", b"\r")
-    )
-    token = decrypt_asymmetric(base64.decodebytes(auth_header_bytes), settings.KEYS[0])
+    auth_header_bytes = b64_decode_and_unescape(auth_header)
+    token = decrypt_asymmetric(auth_header_bytes, settings.KEYS[0])
 
     headers = dict(request.scope["headers"])
     headers[b"authorization"] = b"Bearer " + token if encryption == "session" else token
@@ -63,3 +70,16 @@ async def decrypt_request_body(request: Request, token: bytes | None) -> None:
             return
 
     request._body = data
+
+
+async def encrypt_response(response: Response, public_key: RSAPublicKey) -> None:
+    key = os.urandom(16)
+    iv = os.urandom(16)
+
+    body_enc = encrypt_symmetric(response.body, key, iv)
+    response.body = base64.encodebytes(body_enc)
+
+    key_enc = encrypt_asymmetric(key, public_key)
+
+    response.headers["IV"] = b64_encode_and_escape(iv)
+    response.headers["Authorization"] = b64_encode_and_escape(key_enc)
