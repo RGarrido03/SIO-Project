@@ -7,13 +7,13 @@ import requests
 import typer
 
 from utils.consts import ORGANIZATION_URL, SUBJECT_URL
+from utils.encoding import b64_decode_and_unescape
 from utils.encryption.encryptors import (
-    encrypt_dict_repository,
     decrypt_asymmetric,
     decrypt_symmetric,
+    encrypt_dict,
 )
 from utils.encryption.loaders import load_private_key
-from utils.repository_info import get_repository_iv
 from utils.storage import get_storage_dir
 
 app = typer.Typer()
@@ -40,7 +40,7 @@ def create_organization(
         },
     }
 
-    (key, data) = encrypt_dict_repository(obj)
+    (key, data, iv) = encrypt_dict(obj)
 
     response = requests.post(
         ORGANIZATION_URL,
@@ -48,6 +48,7 @@ def create_organization(
         headers={
             "Content-Type": "application/json",
             "Encryption": "repository",
+            "IV": iv,
             "Authorization": key,
         },
     )
@@ -72,7 +73,6 @@ def create_session(
     private_key_file: Path,
     session_file: Path | None = None,
 ):
-    iv = get_repository_iv()
     with private_key_file.open() as f:
         private_key = f.read()
 
@@ -82,7 +82,7 @@ def create_session(
         "password": password,
         "credentials": base64.encodebytes(private_key.encode()).decode(),
     }
-    (key, data) = encrypt_dict_repository(obj)
+    (key, data, iv) = encrypt_dict(obj)
 
     response = requests.post(
         f"{SUBJECT_URL}/session",
@@ -90,6 +90,7 @@ def create_session(
         headers={
             "Content-Type": "application/json",
             "Encryption": "repository",
+            "IV": iv,
             "Authorization": key,
         },
     )
@@ -97,13 +98,12 @@ def create_session(
     private = load_private_key(private_key.encode(), password)[0]
 
     key = decrypt_asymmetric(
-        response.headers["Authorization"]
-        .replace("\\n", "\n")
-        .replace("\\r", "\r")
-        .encode(),
+        b64_decode_and_unescape(response.headers["Authorization"]),
         private,
     )
-    token = decrypt_symmetric(response.content, key, iv).decode()
+
+    iv = b64_decode_and_unescape(response.headers["IV"])
+    token = decrypt_symmetric(response.content, key, iv).decode().strip('"')
     session_file = (
         session_file
         or get_storage_dir()
