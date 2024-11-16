@@ -1,10 +1,11 @@
 import base64
 import os
-from typing import Any
+from typing import Any, AsyncIterable
 
 import jwt
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 from fastapi import Request
+from starlette.middleware.base import _StreamingResponse
 from starlette.responses import Response
 
 from repository.config.settings import settings
@@ -76,10 +77,22 @@ async def encrypt_response(response: Response, public_key: RSAPublicKey) -> None
     key = os.urandom(16)
     iv = os.urandom(16)
 
-    body_enc = encrypt_symmetric(response.body, key, iv)
-    response.body = base64.encodebytes(body_enc)
+    if isinstance(response, _StreamingResponse):
+        body = b"".join([x async for x in response.body_iterator])  # type: ignore
+        body_enc = encrypt_symmetric(body, key, iv)
+        body_enc = base64.encodebytes(body_enc)
+
+        async def new_body_iterator() -> AsyncIterable[bytes]:
+            yield body_enc
+
+        response.body_iterator = new_body_iterator()
+    else:
+        body = response.body
+        body_enc = encrypt_symmetric(body, key, iv)
+        response.body = body_enc
 
     key_enc = encrypt_asymmetric(key, public_key)
 
+    response.headers["Content-Length"] = str(len(body_enc))
     response.headers["IV"] = b64_encode_and_escape(iv)
     response.headers["Authorization"] = b64_encode_and_escape(key_enc)
