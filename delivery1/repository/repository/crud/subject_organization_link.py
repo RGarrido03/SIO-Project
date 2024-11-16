@@ -62,7 +62,8 @@ class CRUDSubjectOrganizationLink(
         )
 
         key = os.urandom(16)
-        token_enc = encrypt_symmetric(token.encode(), key)
+        iv = os.urandom(16)  # TODO: Send IV
+        token_enc = encrypt_symmetric(token.encode(), key, iv)
         token_enc = base64.encodebytes(token_enc)
 
         key_enc = encrypt_asymmetric(key, public_key)

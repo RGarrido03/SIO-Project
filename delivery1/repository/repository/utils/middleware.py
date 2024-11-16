@@ -39,6 +39,10 @@ async def decrypt_request_body(request: Request, token: bytes | None) -> None:
     if token is None:
         return
 
+    if (iv_header := request.headers.get("IV")) is None:
+        return
+
+    iv = base64.decodebytes(iv_header.encode())
     data = await request.body()
     if not data:
         return
@@ -46,7 +50,7 @@ async def decrypt_request_body(request: Request, token: bytes | None) -> None:
     match request.headers.get("Encryption"):
         case "repository":
             data = base64.decodebytes(data)
-            data = decrypt_symmetric(data, token)
+            data = decrypt_symmetric(data, token, iv)
         case "session":
             payload: dict[str, Any] = jwt.decode(
                 token.decode(),
@@ -54,7 +58,7 @@ async def decrypt_request_body(request: Request, token: bytes | None) -> None:
                 algorithms=[settings.AUTH_ALGORITHM],
             )
             key: str = payload.get("keys", [])[0]
-            data = decrypt_symmetric(data, key.encode())
+            data = decrypt_symmetric(data, key.encode(), iv)
         case _:
             return
 
