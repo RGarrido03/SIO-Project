@@ -73,23 +73,30 @@ async def decrypt_request_body(request: Request, token: bytes | None) -> None:
     request._body = data
 
 
+async def _get_response_body(response: Response) -> bytes:
+    if isinstance(response, _StreamingResponse):
+        return b"".join([x async for x in response.body_iterator])  # type: ignore
+    return response.body
+
+
+async def _set_response_body(response: Response, body: bytes) -> None:
+    async def new_body_iterator() -> AsyncIterable[bytes]:
+        yield body
+
+    if isinstance(response, _StreamingResponse):
+        response.body_iterator = new_body_iterator()
+        return
+    response.body = body
+
+
 async def encrypt_response(response: Response, public_key: RSAPublicKey) -> None:
     key = os.urandom(16)
     iv = os.urandom(16)
 
-    if isinstance(response, _StreamingResponse):
-        body = b"".join([x async for x in response.body_iterator])  # type: ignore
-        body_enc = encrypt_symmetric(body, key, iv)
-        body_enc = base64.encodebytes(body_enc)
-
-        async def new_body_iterator() -> AsyncIterable[bytes]:
-            yield body_enc
-
-        response.body_iterator = new_body_iterator()
-    else:
-        body = response.body
-        body_enc = encrypt_symmetric(body, key, iv)
-        response.body = body_enc
+    body = await _get_response_body(response)
+    body_enc = encrypt_symmetric(body, key, iv)
+    body_enc = base64.encodebytes(body_enc)
+    await _set_response_body(response, body_enc)
 
     key_enc = encrypt_asymmetric(key, public_key)
 
