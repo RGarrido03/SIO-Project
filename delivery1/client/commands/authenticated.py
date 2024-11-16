@@ -5,7 +5,7 @@ import requests
 import typer
 
 from utils.consts import DOCUMENT_URL
-from utils.encryption.encryptors import encrypt_dict_session
+from utils.encryption.encryptors import encrypt_key
 
 app = typer.Typer()
 
@@ -27,7 +27,7 @@ def list_documents(
             "Invalid date filter. Must be one of 'nt', 'ot', 'et'."
         )
 
-    (key, _) = encrypt_dict_session(None, session_file.read_bytes())
+    key = encrypt_key(session_file.read_bytes())
 
     params = {
         "username": username,
