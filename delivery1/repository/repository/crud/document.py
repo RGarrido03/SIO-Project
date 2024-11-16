@@ -76,12 +76,13 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
         document.acl[role].discard(permission)
         return await self._add_to_db(document)
 
-    async def delete(self, document_handle: uuid.UUID) -> bool:
+    async def delete(self, document_handle: uuid.UUID, username: str) -> bool:
         document = await self.get(document_handle)
         if document is None:
             return False
 
         document.file_handle = None
+        document.deleter_username = username
         await self._add_to_db(document)
         return True
 
