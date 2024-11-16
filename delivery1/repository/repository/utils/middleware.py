@@ -21,7 +21,7 @@ async def decrypt_request_key(request: Request) -> tuple[Request, bytes | None]:
     token = decrypt_asymmetric(base64.decodebytes(auth_header_bytes), settings.KEYS[0])
 
     headers = dict(request.scope["headers"])
-    headers[b"authorization"] = token
+    headers[b"authorization"] = b"Bearer " + token if encryption == "session" else token
     request.scope["headers"] = [(k, v) for k, v in headers.items()]
 
     if encryption != "session":

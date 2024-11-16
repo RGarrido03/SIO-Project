@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Security
 from starlette.responses import Response
 
 from repository.crud.subject import crud_subject
@@ -15,7 +15,10 @@ router = APIRouter(prefix="/subject", tags=["Subject"])
 
 
 @router.post("")
-async def create_subject(subject: SubjectCreate) -> Subject:
+async def create_subject(
+    subject: SubjectCreate,
+    _: SubjectOrganizationLink = Security(get_current_user),
+) -> Subject:
     obj = await crud_subject.create(subject)
     return obj.subject
 
@@ -36,28 +39,28 @@ async def create_session(info: SessionCreate) -> Response:
 
 @router.post("/session/role")
 async def add_role(
-    role: RoleEnum, _: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
+    role: RoleEnum, link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
 ) -> Session:
     try:
-        link = await crud_subject_organization_link.get_and_verify_session(
-            "username", "organization"  # TODO: Get from session
-        )
         return await crud_subject_organization_link.add_role_to_session(link, role)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.delete("/session/role")
-async def drop_role(role: RoleEnum) -> Session:
+async def drop_role(
+    role: RoleEnum, link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
+) -> Session:
     try:
-        link = await crud_subject_organization_link.get_and_verify_session(
-            "username", "organization"  # TODO: Get from session
-        )
         return await crud_subject_organization_link.drop_role_from_session(link, role)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.patch("/activation")
-async def set_activation(username: str, active: bool) -> Subject | None:
+async def set_activation(
+    username: str,
+    active: bool,
+    _: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
+) -> Subject | None:
     return await crud_subject.set_active(username, active)
