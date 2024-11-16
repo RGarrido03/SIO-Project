@@ -9,7 +9,11 @@ from fastapi.staticfiles import StaticFiles
 from repository.config.database import init_db
 from repository.config.settings import settings
 from repository.routers import router
-from repository.utils.middleware import decrypt_request_body, decrypt_request_key
+from repository.utils.middleware import (
+    decrypt_request_body,
+    decrypt_request_key,
+    encrypt_response,
+)
 
 
 @asynccontextmanager
@@ -45,7 +49,11 @@ async def encryption_middleware(
 ) -> Response:
     (request, token) = await decrypt_request_key(request)
     await decrypt_request_body(request, token)
+
     response = await call_next(request)
+
+    if request.state.public_key is not None:
+        await encrypt_response(response, request.state.public_key)
     return response
 
 
