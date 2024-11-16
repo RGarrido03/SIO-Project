@@ -16,6 +16,6 @@ $ docker compose up -build
 ### More then once
 ```
 $ docker compose down --volumes
-$ docker builder prune -all 
-$ docker compose up -build
+$ docker builder prune --all 
+$ docker compose up --build
 ```
