@@ -39,6 +39,8 @@ async def decrypt_request_key(request: Request) -> tuple[Request, bytes | None]:
         token,
         settings.AUTH_SECRET_KEY,
         algorithms=[settings.AUTH_ALGORITHM],
+        verify=False,
+        options={"verify_signature": False},
     )
     return request, payload.get("keys", [])[0].encode()
 
