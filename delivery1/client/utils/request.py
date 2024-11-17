@@ -63,7 +63,9 @@ def request_session(
     content_type: str = "application/json",
     params: dict[str, str] | None = None,
 ) -> tuple[str, requests.Response]:
-    payload = jwt.decode(session, verify=False)
+    payload = jwt.decode(
+        session, algorithms=["HS256"], options={"verify_signature": False}
+    )
     if payload["exp"] < time.time():
         print("Session expired, please create a new one.")
         raise typer.Exit(code=1)
