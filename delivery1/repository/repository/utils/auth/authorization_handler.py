@@ -32,6 +32,8 @@ async def get_current_user(
         )
         username: str = payload.get("username")
         organization: str = payload.get("organization")
+    except jwt.exceptions.ExpiredSignatureError:
+        raise session_expired_exception
     except InvalidTokenError:
         raise credentials_exception
 
