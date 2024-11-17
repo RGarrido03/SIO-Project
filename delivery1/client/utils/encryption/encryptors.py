@@ -30,13 +30,13 @@ def encrypt_key(
     return b64_encode_and_escape(encrypt_asymmetric(key, public_key))
 
 
-def encrypt_dict(
-    data: dict[str, Any],
+def encrypt_request(
+    data: dict[str, Any] | None,
     key: bytes = os.urandom(32),
     public_key: RSAPublicKey = get_repository_public_key(),
-) -> tuple[str, str, str]:
+) -> tuple[str, str | None, str]:
     """
-    Encrypts a dictionary using hybrid encryption.
+    Encrypts a request using hybrid encryption.
 
     :param data: The dictionary to be encrypted
     :type data: dict[str, Any] | None
@@ -46,10 +46,13 @@ def encrypt_dict(
     :type public_key: RSAPublicKey
 
     :return: The encrypted symmetric key, the encrypted data and the IV
-    :rtype: tuple[str, str | None, str | None]
+    :rtype: tuple[str, str | None, str]
     """
     iv = os.urandom(16)
     key_b64 = encrypt_key(key, public_key)
+
+    if data is None:
+        return key_b64, None, b64_encode_and_escape(iv)
 
     data_bytes = json.dumps(data).encode()
     data_bytes = encrypt_symmetric(data_bytes, key, iv).decode()
