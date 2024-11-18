@@ -2,12 +2,13 @@ import base64
 import json
 import sys
 from hashlib import sha512
+from os import mkdir
 from pathlib import Path
 
 import requests
 import typer
 
-from utils.consts import ORGANIZATION_URL, SUBJECT_URL
+from utils.consts import ORGANIZATION_URL, SUBJECT_URL, BASE_URL
 from utils.encryption.loaders import load_private_key
 from utils.request import request_repository
 from utils.storage import get_storage_dir
@@ -93,16 +94,25 @@ def create_session(
 @app.command("rep_get_file")
 def get_file(
     file_handle: str,
-    file: Path | None
+    file: Path | None = None
 ):
-    response = requests.get({file_handle})
+    response = requests.get(f"{BASE_URL}/static/{file_handle}")
+    print(response)
 
-    if file:
-        with file.open("wb") as f:
-            f.write(response)
-    
-        print(f"File saved in {file}")
+    body = response.content
+    # TODO decrypt document first to show contents on stdout or file
 
-        sys.stdout.buffer.write(response)
+    if response.status_code == 200:
+        sys.stdout.buffer.write(body)
         sys.stdout.flush()
+
+        if file:
+            file.parent.mkdir(parents=True)
+            with file.open("wb") as f:
+                f.write(body)
+
+            print(f"File saved in {file}")
+
+    else:
+        print(f"File {file_handle} not found")
             
