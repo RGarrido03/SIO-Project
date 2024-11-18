@@ -6,12 +6,15 @@ import typer
 
 from utils.consts import DOCUMENT_URL
 from utils.request import request_session
+from utils.types import RepPublicKey, RepAddress
 
 app = typer.Typer()
 
 
 @app.command("rep_list_docs")
 def list_documents(
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
     session_file: Path,
     username: Annotated[
         str | None,
@@ -34,7 +37,12 @@ def list_documents(
     }
 
     body, _ = request_session(
-        "GET", DOCUMENT_URL, None, session_file.read_bytes(), params=params
+        "GET",
+        f"{repository_address}{DOCUMENT_URL}",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+        params=params,
     )
     body = json.loads(body)
     print(body)
