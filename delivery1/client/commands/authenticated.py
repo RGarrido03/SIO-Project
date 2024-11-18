@@ -1,11 +1,11 @@
+import json
 from pathlib import Path
 from typing import Annotated
 
-import requests
 import typer
 
 from utils.consts import DOCUMENT_URL
-from utils.encryption.encryptors import encrypt_dict_session
+from utils.request import request_session
 
 app = typer.Typer()
 
@@ -27,21 +27,14 @@ def list_documents(
             "Invalid date filter. Must be one of 'nt', 'ot', 'et'."
         )
 
-    (key, _) = encrypt_dict_session(None, session_file.read_bytes())
-
     params = {
         "username": username,
         "date": date[1] if date is not None else None,
         "date_order": date[0] if date is not None else None,
     }
 
-    response = requests.get(
-        DOCUMENT_URL,
-        params=params,
-        headers={
-            "Encryption": "session",
-            "Authorization": key,
-        },
+    body, _ = request_session(
+        "GET", DOCUMENT_URL, None, session_file.read_bytes(), params=params
     )
-    body = response.json()
+    body = json.loads(body)
     print(body)
