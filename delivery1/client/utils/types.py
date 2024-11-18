@@ -27,7 +27,7 @@ def _validate_address(value: str) -> str:
     if not re.match(r"^([a-zA-Z][a-zA-Z0-9.-]*|\d{1,3}(\.\d{1,3}){3}):(\d+)$", value):
         print("Invalid address format (expected IP:port or domain:port)")
         raise typer.Exit(code=1)
-    return value
+    return "http://" + value
 
 
 RepPublicKey = Annotated[
