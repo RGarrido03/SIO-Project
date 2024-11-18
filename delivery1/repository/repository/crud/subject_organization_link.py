@@ -1,8 +1,8 @@
 import base64
-import os
 from typing import cast
 
 from cryptography.hazmat.primitives._serialization import Encoding, PublicFormat
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 
 from repository.config.database import get_session
 from repository.crud.base import CRUDBase
@@ -13,7 +13,6 @@ from repository.models.relations import (
 )
 from repository.models.session import Session, SessionWithSubjectInfo, SessionCreate
 from repository.utils.auth.generate_token import create_token
-from repository.utils.encryption.encryptors import encrypt_asymmetric, encrypt_symmetric
 from repository.utils.encryption.loaders import load_private_key
 
 
@@ -23,7 +22,7 @@ class CRUDSubjectOrganizationLink(
     def __init__(self) -> None:
         super().__init__(SubjectOrganizationLink)
 
-    async def create_session(self, info: SessionCreate) -> tuple[bytes, bytes]:
+    async def create_session(self, info: SessionCreate) -> tuple[str, RSAPublicKey]:
         credentials_bytes = base64.decodebytes(info.credentials.encode())
         async with get_session() as session:
             rel = await self.get((info.username, info.organization), session)
@@ -61,13 +60,7 @@ class CRUDSubjectOrganizationLink(
             )
         )
 
-        key = os.urandom(16)
-        token_enc = encrypt_symmetric(token.encode(), key)
-        token_enc = base64.encodebytes(token_enc)
-
-        key_enc = encrypt_asymmetric(key, public_key)
-        key_enc = base64.encodebytes(key_enc)
-        return key_enc, token_enc
+        return token, public_key
 
     async def manage_role_in_session(
         self, obj: SubjectOrganizationLink, role: RoleEnum, add: bool

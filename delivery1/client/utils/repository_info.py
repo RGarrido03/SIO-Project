@@ -31,16 +31,3 @@ def get_repository_public_key() -> RSAPublicKey:
     with open(file, "w+") as f:
         f.write(public)
     return load_public_key(public)
-
-
-def get_repository_iv() -> bytes:
-    file = get_storage_dir() / "repository" / "iv.txt"
-
-    if file.exists():
-        with open(file, "rb") as f:
-            return f.read()
-
-    iv = _fetch_repository_iv()
-    with open(file, "wb+") as f:
-        f.write(iv)
-    return iv
