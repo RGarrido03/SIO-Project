@@ -1,4 +1,5 @@
 import base64
+import json
 import sys
 from hashlib import sha512
 from pathlib import Path
@@ -7,13 +8,8 @@ import requests
 import typer
 
 from utils.consts import ORGANIZATION_URL, SUBJECT_URL
-from utils.encryption.encryptors import (
-    encrypt_dict_repository,
-    decrypt_asymmetric,
-    decrypt_symmetric,
-)
 from utils.encryption.loaders import load_private_key
-from utils.repository_info import get_repository_iv
+from utils.request import request_repository
 from utils.storage import get_storage_dir
 
 app = typer.Typer()
@@ -40,18 +36,9 @@ def create_organization(
         },
     }
 
-    (key, data) = encrypt_dict_repository(obj)
+    body, _ = request_repository("POST", ORGANIZATION_URL, obj, None)
+    body = json.loads(body)
 
-    response = requests.post(
-        ORGANIZATION_URL,
-        data=data,
-        headers={
-            "Content-Type": "application/json",
-            "Encryption": "repository",
-            "Authorization": key,
-        },
-    )
-    body = response.json()
     print(f"Created organization {body['name']}")
 
 
@@ -72,38 +59,20 @@ def create_session(
     private_key_file: Path,
     session_file: Path | None = None,
 ):
-    iv = get_repository_iv()
     with private_key_file.open() as f:
-        private_key = f.read()
+        private_key_str = f.read().encode()
+        private_key = load_private_key(private_key_str, password)[0]
 
     obj: dict[str, str] = {
         "organization": organization,
         "username": username,
         "password": password,
-        "credentials": base64.encodebytes(private_key.encode()).decode(),
+        "credentials": base64.encodebytes(private_key_str).decode(),
     }
-    (key, data) = encrypt_dict_repository(obj)
 
-    response = requests.post(
-        f"{SUBJECT_URL}/session",
-        data=data,
-        headers={
-            "Content-Type": "application/json",
-            "Encryption": "repository",
-            "Authorization": key,
-        },
-    )
+    body, _ = request_repository("POST", f"{SUBJECT_URL}/session", obj, private_key)
+    token = body.strip('"')
 
-    private = load_private_key(private_key.encode(), password)[0]
-
-    key = decrypt_asymmetric(
-        response.headers["Authorization"]
-        .replace("\\n", "\n")
-        .replace("\\r", "\r")
-        .encode(),
-        private,
-    )
-    token = decrypt_symmetric(response.content, key, iv).decode()
     session_file = (
         session_file
         or get_storage_dir()
