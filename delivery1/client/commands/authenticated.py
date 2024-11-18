@@ -4,10 +4,8 @@ from typing import Annotated
 
 import typer
 
-from utils.consts import DOCUMENT_URL
+from utils.consts import DOCUMENT_URL, SUBJECT_URL
 from utils.request import request_session
-
-from client.utils.consts import SUBJECT_URL
 
 app = typer.Typer()
 
@@ -18,7 +16,7 @@ def list_subjects(
 ):
     params = {
         "username": username,
-        "status": bool
+        "active": bool
     }
 
     body, _ = request_session(
