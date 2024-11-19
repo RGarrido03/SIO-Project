@@ -35,7 +35,6 @@ async def decrypt_request_key(request: Request) -> tuple[Request, bytes | None]:
     if encryption != "session":
         return request, token
 
-    print("decrypt_request_key", request, token)
     payload: dict[str, Any] = jwt.decode(
         token,
         settings.AUTH_SECRET_KEY,
@@ -63,13 +62,8 @@ async def decrypt_request_body(request: Request, token: bytes | None) -> None:
             data = base64.decodebytes(data)
             data = decrypt_symmetric(data, token, iv)
         case "session":
-            payload: dict[str, Any] = jwt.decode(
-                token.decode(),
-                settings.AUTH_SECRET_KEY,
-                algorithms=[settings.AUTH_ALGORITHM],
-            )
-            key: str = payload.get("keys", [])[0]
-            data = decrypt_symmetric(data, key.encode(), iv)
+
+            data = decrypt_symmetric(data, token, iv)
         case _:
             return
 
