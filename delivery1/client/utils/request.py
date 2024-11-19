@@ -5,7 +5,7 @@ from typing import Literal, Any
 import jwt
 import requests
 import typer
-from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
 
 from utils.encoding import b64_decode_and_unescape
 from utils.encryption.encryptors import (
@@ -20,10 +20,11 @@ def request_repository(
     url: str,
     obj: dict[str, Any],
     private_key: RSAPrivateKey | None,
+    repository_public_key: RSAPublicKey,
     content_type: str = "application/json",
     params: dict[str, str] | None = None,
 ) -> tuple[str, requests.Response]:
-    (req_key, req_data, req_iv) = encrypt_request(obj)
+    (req_key, req_data, req_iv) = encrypt_request(obj, repository_public_key)
 
     response = requests.request(
         method,
@@ -60,6 +61,7 @@ def request_session(
     url: str,
     obj: dict[str, Any] | None,
     session: bytes,
+    repository_public_key: RSAPublicKey,
     content_type: str = "application/json",
     params: dict[str, str] | None = None,
 ) -> tuple[str, requests.Response]:
@@ -70,7 +72,7 @@ def request_session(
         print("Session expired, please create a new one.")
         raise typer.Exit(code=1)
 
-    (req_key, req_data, req_iv) = encrypt_request(obj, session)
+    (req_key, req_data, req_iv) = encrypt_request(obj, repository_public_key, session)
 
     response = requests.request(
         method,
