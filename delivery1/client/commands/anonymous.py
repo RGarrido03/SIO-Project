@@ -12,6 +12,7 @@ from utils.consts import ORGANIZATION_URL, SUBJECT_URL, BASE_URL
 from utils.encryption.loaders import load_private_key
 from utils.request import request_repository
 from utils.storage import get_storage_dir
+from utils.types import RepPublicKey, RepAddress
 
 app = typer.Typer()
 
@@ -23,6 +24,8 @@ def create_organization(
     name: str,
     email: str,
     public_key_file: Path,
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
 ):
     with public_key_file.open() as f:
         public_key = f.read()
@@ -37,15 +40,24 @@ def create_organization(
         },
     }
 
-    body, _ = request_repository("POST", ORGANIZATION_URL, obj, None)
+    body, _ = request_repository(
+        "POST",
+        f"{repository_address}{ORGANIZATION_URL}",
+        obj,
+        None,
+        repository_public_key,
+    )
     body = json.loads(body)
 
     print(f"Created organization {body['name']}")
 
 
 @app.command("rep_list_orgs")
-def list_organizations():
-    response = requests.get(ORGANIZATION_URL)
+def list_organizations(
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+):
+    response = requests.get(f"{repository_address}{ORGANIZATION_URL}")
     body = response.json()
     print("Organizations:")
     for org in body:
@@ -58,6 +70,8 @@ def create_session(
     username: str,
     password: str,
     private_key_file: Path,
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
     session_file: Path | None = None,
 ):
     with private_key_file.open() as f:
@@ -71,7 +85,13 @@ def create_session(
         "credentials": base64.encodebytes(private_key_str).decode(),
     }
 
-    body, _ = request_repository("POST", f"{SUBJECT_URL}/session", obj, private_key)
+    body, _ = request_repository(
+        "POST",
+        f"{repository_address}{SUBJECT_URL}/session",
+        obj,
+        private_key,
+        repository_public_key,
+    )
     token = body.strip('"')
 
     session_file = (
@@ -94,9 +114,11 @@ def create_session(
 @app.command("rep_get_file")
 def get_file(
     file_handle: str,
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
     file: Path | None = None
 ):
-    response = requests.get(f"{BASE_URL}/static/{file_handle}")
+    response = requests.get(f"{repository_address}/static/{file_handle}")
     print(response)
 
     body = response.content
@@ -115,4 +137,4 @@ def get_file(
 
     else:
         print(f"File {file_handle} not found")
-            
+

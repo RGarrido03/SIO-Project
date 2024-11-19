@@ -8,7 +8,6 @@ from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPubl
 from cryptography.hazmat.primitives.ciphers import algorithms, modes, Cipher
 
 from utils.encoding import b64_encode_and_escape, b64_decode_and_unescape
-from utils.repository_info import get_repository_public_key
 
 
 def encrypt_symmetric(data: bytes, key: bytes, iv: bytes) -> bytes:
@@ -25,15 +24,16 @@ def encrypt_asymmetric(data: bytes, public_key: RSAPublicKey) -> bytes:
 
 
 def encrypt_key(
-    key: bytes = os.urandom(32), public_key: RSAPublicKey = get_repository_public_key()
+    public_key: RSAPublicKey,
+    key: bytes = os.urandom(32),
 ) -> str:
     return b64_encode_and_escape(encrypt_asymmetric(key, public_key))
 
 
 def encrypt_request(
     data: dict[str, Any] | None,
+    public_key: RSAPublicKey,
     key: bytes = os.urandom(32),
-    public_key: RSAPublicKey = get_repository_public_key(),
 ) -> tuple[str, str | None, str]:
     """
     Encrypts a request using hybrid encryption.
@@ -49,7 +49,7 @@ def encrypt_request(
     :rtype: tuple[str, str | None, str]
     """
     iv = os.urandom(16)
-    key_b64 = encrypt_key(key, public_key)
+    key_b64 = encrypt_key(public_key, key)
 
     if data is None:
         return key_b64, None, b64_encode_and_escape(iv)
