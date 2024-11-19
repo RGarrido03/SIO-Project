@@ -6,3 +6,38 @@
 - Bruno Lopes - 68264
 - André Pedro Ribeiro - 112974
 - Violeta Batista Ramos - 113170
+
+# Commands implemented
+__Local commands__
+
+- [x] rep_subject_credentials <password> <credentials file>
+- [ ] rep_decrypt_file <encrypted file> <encryption metadata>
+
+__Commands that use the anonymous API__
+
+- [x] rep_create_org <organization> <username> <name> <email> <public key file>
+- [x] rep_list_orgs
+- [x] rep_create_session <organization> <username> <password> <credentials file> <session file>
+- [ ] rep_get_file <file handle> [file]
+
+
+__Commands that use the authenticated API__
+
+- [ ] rep_list_subjects <session file> [username]
+- [x] rep_list_docs <session file> [-s username] [-d nt/ot/et date]
+
+__Commands that use the authorized API__
+
+- [ ] rep_add_subject <session file> <username> <name> <email> <credentials file> 
+- [ ] rep_suspend_subject <session file> <username>
+- [ ] rep_activate_subject <session file> <username>
+- [ ] rep_add_doc <session file> <document name> <file>
+- [ ] rep_get_doc_file <session file> <document name> [file]
+- [ ] rep_delete_doc <session file> <document name>
+
+
+
+
+
+
+
