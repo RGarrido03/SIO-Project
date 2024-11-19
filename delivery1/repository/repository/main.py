@@ -1,8 +1,9 @@
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Callable, Awaitable
+from typing import AsyncGenerator, Callable, Awaitable, Any
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 from fastapi.responses import ORJSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -61,3 +62,23 @@ async def encryption_middleware(
 
 app.mount(settings.STATIC_PATH, StaticFiles(directory="static"), name="static")
 app.include_router(router)
+
+
+def custom_openapi() -> dict[str, Any]:
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title="SIO Project - Repository",
+        version="1.0.0",
+        routes=app.routes,
+    )
+    openapi_schema["components"]["securitySchemes"]["OAuth2PasswordBearer"] = {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+    }
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi  # type: ignore
