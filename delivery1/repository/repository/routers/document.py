@@ -7,7 +7,7 @@ from fastapi import APIRouter, UploadFile, HTTPException, Form, File, Security
 
 from repository.crud.document import crud_document
 from repository.models import SubjectOrganizationLink
-from repository.models.document import Document, DocumentCreate, DocumentBase
+from repository.models.document import Document, DocumentCreate, DocumentBase, DocumentCreateWithFile
 from repository.models.permission import RoleEnum, DocumentPermission
 from repository.utils.auth.authorization_handler import get_current_user
 from repository.utils.encryption.encryptors import encrypt_symmetric
@@ -17,45 +17,25 @@ router = APIRouter(prefix="/document", tags=["Document"])
 
 @router.post("")
 async def create_document(
-    name: Annotated[str, Form(...)],
-    file_handle: Annotated[str, Form(...)],
-    # organization_name: Annotated[str, Form(...)],
-    creator_username: Annotated[str, Form(...)],
-    alg: Annotated[str, Form(...)],
-    key: Annotated[str, Form(...)],
-    iv: Annotated[str, Form(...)],
-    acl: Annotated[dict | str, Form(media_type="application/json")],
-    file: Annotated[UploadFile, File(...)],
-    deleter_username: Annotated[str | None, Form(...)] = None,
-    _: SubjectOrganizationLink = Security(get_current_user),
+        doc: DocumentCreateWithFile,
+    link: SubjectOrganizationLink = Security(get_current_user),
 ) -> Document:
     try:
-        # TODO WE NEED TO INFER THE ORGANIZATION NAME
-        acl_dict = json.loads(acl)
-        formatted_acl = {
-            RoleEnum(role): (
-                {DocumentPermission(perm)}
-                if isinstance(perm, str)
-                else {DocumentPermission(p) for p in perm}
-            )
-            for role, perm in acl_dict.items()
-        }
+        # TODO FIXME NEXT DEILVERY
+        # acl_dict = json.loads(acl)
+        # formatted_acl = {
+        #     RoleEnum(role): (
+        #         {DocumentPermission(perm)}
+        #         if isinstance(perm, str)
+        #         else {DocumentPermission(p) for p in perm}
+        #     )
+        #     for role, perm in acl_dict.items()
+        # }
 
+        doc.creator_username = link.subject_username
+        doc.organization_name = link.organization_name
 
-        doc = DocumentCreate(
-            name=name,
-            file_handle=file_handle,
-            creator_username=creator_username,
-            deleter_username=deleter_username,
-            # organization_name=organization_name,
-            alg=alg,
-            iv=str(iv),
-            key=str(key),
-            acl=formatted_acl,
-        )
-        # temos de enviar o document encriptado com base no alg, key e iv
-
-        return await crud_document.add_new(doc, file)
+        return await crud_document.add_new(DocumentCreate.model_validate(doc), doc.file_content)
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

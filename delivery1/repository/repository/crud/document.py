@@ -1,3 +1,4 @@
+import base64
 import os
 import uuid
 from datetime import datetime
@@ -19,9 +20,9 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
     def __init__(self) -> None:
         super().__init__(Document)
 
-    async def add_new(self, document: DocumentCreate, file: UploadFile) -> Document:
-        file_content = await file.read() # NAO PODE SER CONSUMIDO 2x
-        if (sha256(file_content).hexdigest()) != document.file_handle:
+    async def add_new(self, document: DocumentCreate, file: str) -> Document:
+        file_content = base64.decodebytes(file.encode())
+        if (sha256(file.encode()).hexdigest()) != document.file_handle:
 
             raise ValueError("File handle does not match the file content")
 

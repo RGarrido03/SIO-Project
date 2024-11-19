@@ -58,3 +58,6 @@ class Document(DocumentBaseWithPrivateMeta, table=True):
 
 class DocumentCreate(DocumentBaseWithPrivateMeta):
     file_handle: str
+
+class DocumentCreateWithFile(DocumentCreate):
+    file_content: str

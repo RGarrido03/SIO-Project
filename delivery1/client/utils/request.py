@@ -74,10 +74,7 @@ def request_session(
         print("Session expired, please create a new one.")
         raise typer.Exit(code=1)
 
-    pprint(obj)
     (req_key, req_data, req_iv) = encrypt_request(obj, repository_public_key, session, payload)
-    print(req_key, req_data, req_iv, sep="\n")
-    print("PIXA1")
     response = requests.request(
         method,
         url,

@@ -1,3 +1,4 @@
+import json
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Callable, Awaitable, Any
 
@@ -50,7 +51,6 @@ async def encryption_middleware(
 ) -> Response:
     (request, token) = await decrypt_request_key(request)
     await decrypt_request_body(request, token)
-
     response = await call_next(request)
 
     try:

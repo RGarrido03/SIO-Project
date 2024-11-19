@@ -57,15 +57,11 @@ async def decrypt_request_body(request: Request, token: bytes | None) -> None:
     if not data:
         return
 
-    match request.headers.get("Encryption"):
-        case "repository":
-            data = base64.decodebytes(data)
-            data = decrypt_symmetric(data, token, iv)
-        case "session":
+    if request.headers.get("Encryption") is None:
+        return
 
-            data = decrypt_symmetric(data, token, iv)
-        case _:
-            return
+    data = base64.decodebytes(data)
+    data = decrypt_symmetric(data, token, iv)
 
     request._body = data
 
