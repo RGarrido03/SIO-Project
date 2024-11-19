@@ -3,6 +3,8 @@ from typing import cast
 
 from cryptography.hazmat.primitives._serialization import Encoding, PublicFormat
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
+from sqlmodel import select
+from sqlmodel.sql._expression_select_cls import SelectOfScalar
 
 from repository.config.database import get_session
 from repository.crud.base import CRUDBase
@@ -12,6 +14,7 @@ from repository.models.relations import (
     SubjectOrganizationLinkCreate,
 )
 from repository.models.session import Session, SessionWithSubjectInfo, SessionCreate
+from repository.models.subject import SubjectActiveListing
 from repository.utils.auth.generate_token import create_token
 from repository.utils.encryption.loaders import load_private_key
 
@@ -61,6 +64,23 @@ class CRUDSubjectOrganizationLink(
         )
 
         return token, public_key
+
+    async def get_subjects_by_organization(
+        self, organization: str, username: str | None
+    ) -> list[SubjectActiveListing]:
+        async with get_session() as session:
+            query: SelectOfScalar[SubjectOrganizationLink] = select(
+                SubjectOrganizationLink
+            ).where(SubjectOrganizationLink.organization_name == organization)
+
+            if username is not None:
+                query = query.where(
+                    SubjectOrganizationLink.subject_username == username
+                )
+
+            result = await session.exec(query)
+            links: list[SubjectOrganizationLink] = list(result.all())
+            return [SubjectActiveListing.model_validate(a.subject) for a in links]
 
     async def manage_role_in_session(
         self, obj: SubjectOrganizationLink, role: RoleEnum, add: bool
