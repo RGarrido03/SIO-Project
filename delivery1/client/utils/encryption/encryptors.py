@@ -6,6 +6,7 @@ from typing import Any
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
 from cryptography.hazmat.primitives.ciphers import algorithms, modes, Cipher
+from requests import session
 
 from utils.encoding import b64_encode_and_escape, b64_decode_and_unescape
 
@@ -24,16 +25,17 @@ def encrypt_asymmetric(data: bytes, public_key: RSAPublicKey) -> bytes:
 
 
 def encrypt_key(
-    public_key: RSAPublicKey,
-    key: bytes = os.urandom(32),
+        public_key: RSAPublicKey,
+        key: bytes = os.urandom(32),
 ) -> str:
     return b64_encode_and_escape(encrypt_asymmetric(key, public_key))
 
 
 def encrypt_request(
-    data: dict[str, Any] | None,
-    public_key: RSAPublicKey,
-    key: bytes = os.urandom(32),
+        data: dict[str, Any] | None,
+        public_key: RSAPublicKey,
+        key: bytes = os.urandom(32),
+        payload: dict[str, Any] = None,
 ) -> tuple[str, str | None, str]:
     """
     Encrypts a request using hybrid encryption.
@@ -44,6 +46,8 @@ def encrypt_request(
     :type key: bytes
     :param public_key: The public key to encrypt the symmetric key
     :type public_key: RSAPublicKey
+    :param payload: The payload to be sent in the request it works like a is_session
+    :type payload: dict[str, Any]
 
     :return: The encrypted symmetric key, the encrypted data and the IV
     :rtype: tuple[str, str | None, str]
@@ -51,8 +55,12 @@ def encrypt_request(
     iv = os.urandom(16)
     key_b64 = encrypt_key(public_key, key)
 
+
     if data is None:
         return key_b64, None, b64_encode_and_escape(iv)
+
+    if payload is not None:
+        key = payload["keys"][0].encode()
 
     data_bytes = json.dumps(data).encode()
     data_bytes = encrypt_symmetric(data_bytes, key, iv).decode()
@@ -74,7 +82,7 @@ def decrypt_asymmetric(data: bytes, private_key: RSAPrivateKey) -> bytes:
 
 
 def decrypt_dict(
-    key: str, data: str, iv: str, private_key: RSAPrivateKey
+        key: str, data: str, iv: str, private_key: RSAPrivateKey
 ) -> dict[str, Any]:
     """
     Decrypts a dictionary using hybrid encryption.

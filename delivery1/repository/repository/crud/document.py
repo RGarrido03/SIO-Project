@@ -20,15 +20,15 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
         super().__init__(Document)
 
     async def add_new(self, document: DocumentCreate, file: UploadFile) -> Document:
-
-        if (sha256(await file.read()).hexdigest()) != document.file_handle:
+        file_content = await file.read() # NAO PODE SER CONSUMIDO 2x
+        if (sha256(file_content).hexdigest()) != document.file_handle:
 
             raise ValueError("File handle does not match the file content")
 
         path = f"static/{document.organization_name}"
         os.makedirs(path, exist_ok=True)
         with open(f"{path}/{document.file_handle}", "wb") as f:
-            f.write(await file.read())
+            f.write(file_content)
 
         return await self.create(document)
 

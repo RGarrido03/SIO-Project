@@ -8,7 +8,7 @@ from pathlib import Path
 import requests
 import typer
 
-from utils.consts import ORGANIZATION_URL, SUBJECT_URL, BASE_URL
+from utils.consts import ORGANIZATION_URL, SUBJECT_URL
 from utils.encryption.loaders import load_private_key
 from utils.request import request_repository
 from utils.storage import get_storage_dir

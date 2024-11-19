@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import datetime
 from typing import Literal, Annotated
 
@@ -9,6 +10,7 @@ from repository.models import SubjectOrganizationLink
 from repository.models.document import Document, DocumentCreate, DocumentBase
 from repository.models.permission import RoleEnum, DocumentPermission
 from repository.utils.auth.authorization_handler import get_current_user
+from repository.utils.encryption.encryptors import encrypt_symmetric
 
 router = APIRouter(prefix="/document", tags=["Document"])
 
@@ -17,7 +19,7 @@ router = APIRouter(prefix="/document", tags=["Document"])
 async def create_document(
     name: Annotated[str, Form(...)],
     file_handle: Annotated[str, Form(...)],
-    organization_name: Annotated[str, Form(...)],
+    # organization_name: Annotated[str, Form(...)],
     creator_username: Annotated[str, Form(...)],
     alg: Annotated[str, Form(...)],
     key: Annotated[str, Form(...)],
@@ -28,6 +30,7 @@ async def create_document(
     _: SubjectOrganizationLink = Security(get_current_user),
 ) -> Document:
     try:
+        # TODO WE NEED TO INFER THE ORGANIZATION NAME
         acl_dict = json.loads(acl)
         formatted_acl = {
             RoleEnum(role): (
@@ -37,17 +40,21 @@ async def create_document(
             )
             for role, perm in acl_dict.items()
         }
+
+
         doc = DocumentCreate(
             name=name,
             file_handle=file_handle,
-            organization_name=organization_name,
             creator_username=creator_username,
             deleter_username=deleter_username,
+            # organization_name=organization_name,
             alg=alg,
-            iv=iv,
-            key=key,
+            iv=str(iv),
+            key=str(key),
             acl=formatted_acl,
         )
+        # temos de enviar o document encriptado com base no alg, key e iv
+
         return await crud_document.add_new(doc, file)
 
     except ValueError as e:

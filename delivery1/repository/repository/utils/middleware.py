@@ -35,6 +35,7 @@ async def decrypt_request_key(request: Request) -> tuple[Request, bytes | None]:
     if encryption != "session":
         return request, token
 
+    print("decrypt_request_key", request, token)
     payload: dict[str, Any] = jwt.decode(
         token,
         settings.AUTH_SECRET_KEY,
