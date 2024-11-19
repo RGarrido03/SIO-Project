@@ -12,15 +12,15 @@ app = typer.Typer()
 
 @app.command("rep_list_docs")
 def list_documents(
-    session_file: Path,
-    username: Annotated[
-        str | None,
-        typer.Option("-s", "--username", help="Filter by username"),
-    ] = None,
-    date: Annotated[
-        tuple[str, str] | None,
-        typer.Option("-d", "--date", help="Filter by date"),
-    ] = None,
+        session_file: Path,
+        username: Annotated[
+            str | None,
+            typer.Option("-s", "--username", help="Filter by username"),
+        ] = None,
+        date: Annotated[
+            tuple[str, str] | None,
+            typer.Option("-d", "--date", help="Filter by date"),
+        ] = None,
 ):
     if date is not None and date[0] not in ["nt", "ot", "et"]:
         raise typer.BadParameter(

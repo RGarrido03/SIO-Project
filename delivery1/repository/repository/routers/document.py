@@ -21,6 +21,7 @@ async def create_document(
     creator_username: Annotated[str, Form(...)],
     alg: Annotated[str, Form(...)],
     key: Annotated[str, Form(...)],
+    iv: Annotated[str, Form(...)],
     acl: Annotated[dict | str, Form(media_type="application/json")],
     file: Annotated[UploadFile, File(...)],
     deleter_username: Annotated[str | None, Form(...)] = None,
@@ -43,6 +44,7 @@ async def create_document(
             creator_username=creator_username,
             deleter_username=deleter_username,
             alg=alg,
+            iv=iv,
             key=key,
             acl=formatted_acl,
         )

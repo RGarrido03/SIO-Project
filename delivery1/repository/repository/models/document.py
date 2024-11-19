@@ -31,6 +31,7 @@ class DocumentBase(SQLModel):
 class DocumentBaseWithPrivateMeta(DocumentBase):
     alg: str
     key: str
+    iv: str
 
 
 class Document(DocumentBaseWithPrivateMeta, table=True):

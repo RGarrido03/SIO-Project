@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     DATABASE_PASSWORD: str = os.getenv("DATABASE_PASSWORD", "postgres")
     DATABASE_URI: str = f"postgresql+asyncpg://postgres:{DATABASE_PASSWORD}@db:5432/sio"
 
+
     # Repository keys
     KEYS: tuple[RSAPrivateKey, RSAPublicKey] = Field(
         default_factory=lambda: load_private_key(
