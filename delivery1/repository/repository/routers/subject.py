@@ -78,5 +78,8 @@ async def set_activation(
     username: str,
     active: bool,
     _: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
-) -> Subject | None:
-    return await crud_subject.set_active(username, active)
+) -> Subject:
+    result = await crud_subject.set_active(username, active)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Subject not found")
+    return result
