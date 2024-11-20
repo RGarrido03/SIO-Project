@@ -36,6 +36,9 @@ def generate_credentials(password: str, credentials_file: Path) -> None:
     with credentials_file.with_suffix(".pub").open("wb+") as f:
         f.write(pem_public_key)
 
+    # NEVER FAILS
+    # return typer.Exit(code=0)
+
 
 # rep_decrypt_file <encrypted file> <encryption metadata>
 @app.command("rep_decrypt_file")

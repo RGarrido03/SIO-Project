@@ -18,13 +18,13 @@ app = typer.Typer()
 
 @app.command("rep_create_org")
 def create_organization(
-    organization: str,
-    username: str,
-    name: str,
-    email: str,
-    public_key_file: Path,
-    repository_public_key: RepPublicKey,
-    repository_address: RepAddress,
+        organization: str,
+        username: str,
+        name: str,
+        email: str,
+        public_key_file: Path,
+        repository_public_key: RepPublicKey,
+        repository_address: RepAddress,
 ):
     with public_key_file.open() as f:
         public_key = f.read()
@@ -52,8 +52,8 @@ def create_organization(
 
 @app.command("rep_list_orgs")
 def list_organizations(
-    repository_public_key: RepPublicKey,
-    repository_address: RepAddress,
+        repository_public_key: RepPublicKey,
+        repository_address: RepAddress,
 ):
     response = requests.get(f"{repository_address}{ORGANIZATION_URL}")
     body = response.json()
@@ -64,13 +64,13 @@ def list_organizations(
 
 @app.command("rep_create_session")
 def create_session(
-    organization: str,
-    username: str,
-    password: str,
-    private_key_file: Path,
-    repository_public_key: RepPublicKey,
-    repository_address: RepAddress,
-    session_file: Path | None = None,
+        organization: str,
+        username: str,
+        password: str,
+        private_key_file: Path,
+        repository_public_key: RepPublicKey,
+        repository_address: RepAddress,
+        session_file: Path | None = None,
 ):
     with private_key_file.open() as f:
         private_key_str = f.read().encode()
@@ -93,11 +93,11 @@ def create_session(
     token = body.strip('"')
 
     session_file = (
-        session_file
-        or get_storage_dir()
-        / "sessions"
-        / organization
-        / f".{sha512(username.encode()).hexdigest()}"
+            session_file
+            or get_storage_dir()
+            / "sessions"
+            / organization
+            / f".{sha512(username.encode()).hexdigest()}"
     )
 
     if not session_file.parent.exists():
@@ -114,9 +114,9 @@ def create_session(
 # rep_get_file <file handle> [file]
 @app.command("rep_get_file")
 def get_file(
-    file_handle: str,
-    repository_address: RepAddress,
-    file: Annotated[Path | None, typer.Argument()] = None,
+        file_handle: str,
+        repository_address: RepAddress,
+        file: Annotated[Path | None, typer.Argument()] = None,
 ):
     response = requests.get(f"{repository_address}{DOCUMENT_URL}/handle/{file_handle}")
 
@@ -140,8 +140,8 @@ def get_file(
 
 @app.command("rep_get_pub_key")
 def get_public_key(
-    repository_address: RepAddress,
-    file: Path,
+        repository_address: RepAddress,
+        file: Path,
 ):
     response = requests.get(f"{repository_address}{REPOSITORY_URL}/public_key")
     body = response.content
@@ -152,3 +152,15 @@ def get_public_key(
     with file.open("w+") as f:
         f.write(body.replace(b"\\n", b"\n").strip(b'"').decode())
         print(f"Public key saved as {file}")
+
+
+@app.command("rep_ping")
+def ping(repository_address: RepAddress):
+    response = requests.get(f"{repository_address}{REPOSITORY_URL}/ping")
+
+    if response.status_code != 200:
+        print("Repository is not available")
+        raise typer.Exit(code=-1)
+
+    print("Repository is available")
+
