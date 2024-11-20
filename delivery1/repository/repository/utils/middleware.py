@@ -3,7 +3,6 @@ import os
 from typing import Any, AsyncIterable
 
 import jwt
-from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 from fastapi import Request
 from starlette.datastructures import State
 from starlette.middleware.base import _StreamingResponse
@@ -17,6 +16,7 @@ from repository.utils.encryption.encryptors import (
     encrypt_symmetric,
     encrypt_asymmetric,
 )
+from repository.utils.encryption.loaders import load_public_key
 
 
 async def decrypt_request_key(request: Request) -> tuple[Request, bytes | None]:
@@ -84,10 +84,17 @@ async def _set_response_body(response: Response, body: bytes) -> None:
     response.body = body
 
 
-async def encrypt_response(response: Response, state: State) -> None:
+async def encrypt_response(
+    response: Response,
+    state: State,
+    encrypt: bool,
+) -> None:
+    if not encrypt:
+        return
+
     iv = os.urandom(16)
     try:
-        public_key = state.public_key
+        public_key = load_public_key(state.public_key)
     except AttributeError:
         public_key = None
 
