@@ -55,7 +55,7 @@ def test_3_generate_keys(prepare_env):
 
 
 def test_4_create_organizations(prepare_env):
-    # o andre e o luis estao nas orgs 1 e 2 respectivamente
+    # André and Luis are in org 1 and 2, respectively
     result = runner.invoke(
         app,
         [
@@ -129,37 +129,22 @@ def test_6_add_doc(prepare_env):
         -> doc3
     :return:
     """
-    # CASO POSITIVO
-    # org1 -> andre
-    # rep_add_doc <session file> <document name> <file>
+    # Positive case
+    for session_file, user in [(SESSION_FILES_ORG1, USERS_ORG1[0][0]), (SESSION_FILES_ORG2, USERS_ORG2[0][0])]:
+        for doc in ["doc1", "doc2", "doc3"]:
+            result = runner.invoke(
+                app,
+                [
+                    "rep_add_doc",
+                    f"{session_file}/{user}",
+                    doc,
+                    f"{TEST_FILES_DIR}/{doc}",
+                ],
+            )
+            assert result.exit_code == 0
 
-    for doc in ["doc1", "doc2", "doc3"]:
-        result = runner.invoke(
-            app,
-            [
-                "rep_add_doc",
-                f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}",
-                doc,
-                f"{TEST_FILES_DIR}/{doc}",
-            ],
-        )
-        assert result.exit_code == 0
-
-    # org2 -> luis
-    for doc in ["doc1", "doc2", "doc3"]:
-        result = runner.invoke(
-            app,
-            [
-                "rep_add_doc",
-                f"{SESSION_FILES_ORG2}/{USERS_ORG2[0][0]}",
-                doc,
-                f"{TEST_FILES_DIR}/{doc}",
-            ],
-        )
-        assert result.exit_code == 0
-
-    # CASO NEGATIVO
-    # repete o doc2 numa org
+    # Negative case
+    # Repeats doc2 in an organization
     result = runner.invoke(
         app,
         [
@@ -173,8 +158,6 @@ def test_6_add_doc(prepare_env):
 
 
 def test_7_list_docs(prepare_env):
-
-    # org1 -> andre
     result = runner.invoke(
         app,
         [
@@ -182,7 +165,6 @@ def test_7_list_docs(prepare_env):
             f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}",
         ],
     )
-
     assert result.exit_code == 0
 
 
@@ -191,7 +173,6 @@ def test_8_list_orgs(prepare_env):
         app,
         ["rep_list_orgs"],
     )
-
     assert result.exit_code == 0
 
 def test_9_list_subjects(prepare_env):
@@ -199,32 +180,22 @@ def test_9_list_subjects(prepare_env):
         app,
         ["rep_list_subjects", f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}"],
     )
-
     assert result.exit_code == 0
 
 
 def test_10_get_doc_file(prepare_env):
-    result = runner.invoke(
-        app,
-        [
-            "rep_get_doc_file",
-            f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}",
-            "doc1",
-            f"{TEST_FILES_DIR}/doc1",
-        ],
-    )
-    assert result.exit_code == 0
-
-    result = runner.invoke(
-        app,
-        [
-            "rep_get_doc_file",
-            f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}",
-            "doc55",
-            f"{TEST_FILES_DIR}/doc1",
-        ],
-    )
-    assert result.exit_code == -1
+    # Positive and negative case
+    for name, code in [("doc1", 0), ("doc4", -1)]:
+        result = runner.invoke(
+            app,
+            [
+                "rep_get_doc_file",
+                f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}",
+                name,
+                f"{TEST_FILES_DIR}/doc1",
+            ],
+        )
+        assert result.exit_code == code
 
 
 def test_11_get_doc_metadata(prepare_env):
@@ -253,10 +224,10 @@ def test_12_decrypt_file(prepare_env):
         assert result.exit_code == 0
 
     # first get file with file_handle
-    result = runner.invoke(app, ["rep_get_file", file_handles[0], f"{TEST_FILES_DIR}/doc1.enc"])
+    runner.invoke(app, ["rep_get_file", file_handles[0], f"{TEST_FILES_DIR}/doc1.enc"])
+    runner.invoke(app, ["rep_get_file", file_handles[1], f"{TEST_FILES_DIR}/doc2.enc"])
 
-    result = runner.invoke(app, ["rep_get_file", file_handles[1], f"{TEST_FILES_DIR}/doc2.enc"])
-
+    # Positive and negative case
     for error_code, doc in zip([0,1], ["doc1", "doc2"]):
         # decrypt file
         result = runner.invoke(
@@ -272,6 +243,7 @@ def test_12_decrypt_file(prepare_env):
 
 
 def test_13_delete_doc(prepare_env):
+    # Positive and negative case
     for name, code in [("doc3", 0), ("doc45", -1)]:
         result = runner.invoke(
             app,
@@ -302,23 +274,27 @@ def test_14_add_subject(prepare_env):
 
 
 def test_15_suspend_subject(prepare_env):
-    result = runner.invoke(
-        app,
-        [
-            "rep_suspend_subject",
-            f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}",
-            USERS_ORG1[1][0],
-        ],
-    )
-    assert result.exit_code == 0
+    # Positive and negative case
+    for username, code in [(USERS_ORG1[1][0], 0), ("not_found_user", -1)]:
+        result = runner.invoke(
+            app,
+            [
+                "rep_suspend_subject",
+                f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}",
+                username,
+            ],
+        )
+        assert result.exit_code == code
 
 def test_16_activate_subject(prepare_env):
-    result = runner.invoke(
-        app,
-        [
-            "rep_suspend_subject",
-            f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}",
-            USERS_ORG1[1][0],
-        ],
-    )
-    assert result.exit_code == 0
+    # Positive and negative case
+    for username, code in [(USERS_ORG1[1][0], 0), ("not_found_user", -1)]:
+        result = runner.invoke(
+            app,
+            [
+                "rep_activate_subject",
+                f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}",
+                username,
+            ],
+        )
+        assert result.exit_code == code

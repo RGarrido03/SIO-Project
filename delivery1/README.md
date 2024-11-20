@@ -22,6 +22,7 @@
 
 __Extra command__
 - [x] rep_get_pub_key <file>
+- [x] rep_ping
 
 
 ### Commands that use the authenticated API
@@ -31,17 +32,39 @@ __Extra command__
 
 ### Commands that use the authorized API
 
+- [x] rep_add_doc <session file> <document name> <file>
+- [x] rep_get_doc_metadata <session file> <document name>
+- [x] rep_get_doc_file <session file> <document name> [file]
+- [x] rep_delete_doc <session file> <document name>
 - [x] rep_add_subject <session file> <username> <name> <email> <credentials file> 
 - [x] rep_suspend_subject <session file> <username>
 - [x] rep_activate_subject <session file> <username>
-- [x] rep_add_doc <session file> <document name> <file>
-- [x] rep_get_doc_file <session file> <document name> [file]
-- [x] rep_delete_doc <session file> <document name>
-- [x] rep_get_doc_metadata <session file> <document name>
 
 
+# How to run the delivery
 
+```shell
+# at the directory delivery1
+docker compose -f compose.prod.yaml up 
 
+```
+
+# How to test the delivery
+
+```shell
+# at the directory delivery1
+cd client
+pytest
+
+```
+
+# How to use each command
+
+```shell
+# at the directory delivery1
+cd client/exec_commands
+command <args>
+```
 
 
 
