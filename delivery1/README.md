@@ -37,8 +37,6 @@ __Extra command__
 - [x] rep_add_doc <session file> <document name> <file>
 - [x] rep_get_doc_file <session file> <document name> [file]
 - [x] rep_delete_doc <session file> <document name>
-
-__Extra command__
 - [x] rep_get_doc_metadata <session file> <document name>
 
 
