@@ -53,10 +53,8 @@ async def encryption_middleware(
     await decrypt_request_body(request, token)
     response = await call_next(request)
 
-    try:
-        await encrypt_response(response, request.state.public_key)
-    except AttributeError:
-        pass
+    await encrypt_response(response, request.state)
+
     return response
 
 

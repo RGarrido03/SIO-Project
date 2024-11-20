@@ -27,7 +27,6 @@ def decrypt_asymmetric(data: bytes, private_key: RSAPrivateKey) -> bytes:
     return private_key.decrypt(data, padding.PKCS1v15())
 
 
-
 # workaround com um switch case para escolher uma tonelada de algoritmos de encriptação
 def encrypt_based_on_alg(data: bytes, key: bytes, iv: bytes, alg: str) -> bytes:
     match alg:

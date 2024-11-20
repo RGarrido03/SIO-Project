@@ -94,13 +94,13 @@ def request_session(
         raise typer.Exit(code=-1)
 
 
-    if "Authorization" not in response.headers:
+    if "IV" not in response.headers:
         return response.content.decode(), response
 
     res_iv = b64_decode_and_unescape(response.headers["IV"])
 
     return (
-        decrypt_symmetric(response.content, payload["keys"][0], res_iv).decode(),
+        decrypt_symmetric(response.content, payload["keys"][0].encode(), res_iv).decode(),
         response,
     )
 

@@ -5,6 +5,7 @@ from typing import Any, AsyncIterable
 import jwt
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 from fastapi import Request
+from starlette.datastructures import State
 from starlette.middleware.base import _StreamingResponse
 from starlette.responses import Response
 
@@ -42,6 +43,7 @@ async def decrypt_request_key(request: Request) -> tuple[Request, bytes | None]:
         verify=False,
         options={"verify_signature": False},
     )
+    request.state.session_key = payload.get("keys", [])[0].encode()
     return request, payload.get("keys", [])[0].encode()
 
 
@@ -82,17 +84,26 @@ async def _set_response_body(response: Response, body: bytes) -> None:
     response.body = body
 
 
-async def encrypt_response(response: Response, public_key: RSAPublicKey) -> None:
-    key = os.urandom(16)
+async def encrypt_response(response: Response, state: State) -> None:
     iv = os.urandom(16)
+    try:
+        public_key = state.public_key
+    except AttributeError:
+        public_key = None
+
+    try:
+        key = state.session_key
+    except AttributeError:
+        key = os.urandom(16)
 
     body = await _get_response_body(response)
     body_enc = encrypt_symmetric(body, key, iv)
     body_enc = base64.encodebytes(body_enc)
     await _set_response_body(response, body_enc)
 
-    key_enc = encrypt_asymmetric(key, public_key)
+    if public_key is not None:
+        key_enc = encrypt_asymmetric(key, public_key)
+        response.headers["Authorization"] = b64_encode_and_escape(key_enc)
 
     response.headers["Content-Length"] = str(len(body_enc))
     response.headers["IV"] = b64_encode_and_escape(iv)
-    response.headers["Authorization"] = b64_encode_and_escape(key_enc)
