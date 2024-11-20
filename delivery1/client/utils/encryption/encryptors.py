@@ -25,17 +25,17 @@ def encrypt_asymmetric(data: bytes, public_key: RSAPublicKey) -> bytes:
 
 
 def encrypt_key(
-        public_key: RSAPublicKey,
-        key: bytes = os.urandom(32),
+    public_key: RSAPublicKey,
+    key: bytes = os.urandom(32),
 ) -> str:
     return b64_encode_and_escape(encrypt_asymmetric(key, public_key))
 
 
 def encrypt_request(
-        data: dict[str, Any] | None,
-        public_key: RSAPublicKey,
-        key: bytes = os.urandom(32),
-        payload: dict[str, Any] = None,
+    data: dict[str, Any] | None,
+    public_key: RSAPublicKey,
+    key: bytes = os.urandom(32),
+    payload: dict[str, Any] = None,
 ) -> tuple[str, str | None, str]:
     """
     Encrypts a request using hybrid encryption.
@@ -54,7 +54,6 @@ def encrypt_request(
     """
     iv = os.urandom(16)
     key_b64 = encrypt_key(public_key, key)
-
 
     if data is None:
         return key_b64, None, b64_encode_and_escape(iv)
@@ -82,7 +81,7 @@ def decrypt_asymmetric(data: bytes, private_key: RSAPrivateKey) -> bytes:
 
 
 def decrypt_dict(
-        key: str, data: str, iv: str, private_key: RSAPrivateKey
+    key: str, data: str, iv: str, private_key: RSAPrivateKey
 ) -> dict[str, Any]:
     """
     Decrypts a dictionary using hybrid encryption.

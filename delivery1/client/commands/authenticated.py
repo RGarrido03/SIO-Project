@@ -10,17 +10,16 @@ from utils.types import RepPublicKey, RepAddress
 
 app = typer.Typer()
 
+
 # rep_list_subjects <session file> [username]
 @app.command("rep_list_subjects")
 def list_subjects(
     repository_public_key: RepPublicKey,
     repository_address: RepAddress,
     session_file: Path,
-    username:Annotated[ str | None, typer.Argument()] = None
+    username: Annotated[str | None, typer.Argument()] = None,
 ):
-    params = {
-        "username": username
-    }
+    params = {"username": username}
 
     body, _ = request_session(
         "GET",
@@ -33,6 +32,7 @@ def list_subjects(
     body = json.loads(body)
     print(body)
     ...
+
 
 @app.command("rep_list_docs")
 def list_documents(
@@ -69,4 +69,3 @@ def list_documents(
     )
     body = json.loads(body)
     print(body)
-
