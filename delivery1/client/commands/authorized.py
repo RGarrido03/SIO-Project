@@ -194,6 +194,55 @@ def add_subject(
     )
     body = json.loads(body)
 
-    print(f"Created subject {body}")
+    print(f"{body}")
 
     # print(f"Created organization {body['name']}")
+
+
+
+
+# rep_suspend_subject <session file> <username>
+@app.command("rep_suspend_subject")
+def suspend_subject(
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: Path,
+    username: str
+):
+    params = {
+        "username": username,
+        "active": False
+    }
+    body, _ = request_session(
+        "PATCH",
+        f"{repository_address}{SUBJECT_URL}/activation",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+        params=params,
+    )
+    body = json.loads(body)
+    print(body)
+
+# rep_activate_subject <session file> <username>
+@app.command("rep_activate_subject")
+def activate_subject(
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: Path,
+    username: str
+):
+    params = {
+        "username": username,
+        "active": True
+    }
+    body, _ = request_session(
+        "PATCH",
+        f"{repository_address}{SUBJECT_URL}/activation",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+        params=params,
+    )
+    body = json.loads(body)
+    print(body)

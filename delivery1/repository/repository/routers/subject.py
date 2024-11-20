@@ -20,11 +20,14 @@ async def create_subject(
     subject: SubjectCreate,
     link: SubjectOrganizationLink = Security(get_current_user),
 ) -> Subject:
-    obj = await crud_subject.create(subject)
-    await crud_organization.add_subject(
-        link.organization_name, subject.username, obj.public_key.id
-    )
-    return obj.subject
+    try:
+        obj = await crud_subject.create(subject)
+        await crud_organization.add_subject(
+            link.organization_name, subject.username, obj.public_key.id
+        )
+        return obj.subject
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post("/session")

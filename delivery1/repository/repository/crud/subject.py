@@ -14,7 +14,11 @@ class CRUDSubject(CRUDBase[Subject, SubjectCreate, str]):
         super().__init__(Subject)
 
     async def create(self, create_obj: SubjectCreate) -> SubjectWithPublicKeyUUID:
+
         async with get_session() as session:
+            # GETTING THE SUBJECT
+            if self.get(create_obj.username):
+                raise ValueError("Subject with this username already exists")
             subject = Subject.model_validate(create_obj)
             subject = await self._add_to_db(subject, session=session)
             public_key = await crud_public_key.create(
