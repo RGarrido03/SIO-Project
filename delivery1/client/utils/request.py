@@ -39,9 +39,12 @@ def request_repository(
         },
     )
 
-    if response.status_code == 500:
-        msg = json.loads(response.content)
-        print(msg["detail"])
+    if response.status_code != 200 and response.status_code != 201:
+        try:
+            msg = json.loads(response.content)
+            print(msg["detail"])
+        except:
+            print(response.content)
         raise typer.Exit(code=-1)
 
     if "Authorization" not in response.headers or private_key is None:
@@ -98,9 +101,12 @@ def request_session(
 
     res_iv = b64_decode_and_unescape(response.headers["IV"])
 
-    return (
-        decrypt_symmetric(
-            response.content, payload["keys"][0].encode(), res_iv
-        ).decode(),
-        response,
-    )
+    dec_body = decrypt_symmetric(
+        response.content, payload["keys"][0].encode(), res_iv
+    ).decode()
+
+    if 400 <= response.status_code < 500:
+        print(dec_body)
+        raise typer.Exit(code=-1)
+
+    return dec_body, response

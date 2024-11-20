@@ -30,6 +30,13 @@ def _validate_address(value: str) -> str:
     return "http://" + value
 
 
+def _validate_path(value: Path) -> Path:
+    if not value.exists():
+        print("Given path does not exist")
+        raise typer.Exit(code=1)
+    return value
+
+
 RepPublicKey = Annotated[
     RSAPublicKey,
     typer.Option(
@@ -52,3 +59,5 @@ RepAddress = Annotated[
         callback=_validate_address,
     ),
 ]
+
+PathWithCheck = Annotated[Path, typer.Argument(callback=_validate_path)]

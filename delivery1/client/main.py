@@ -9,4 +9,10 @@ app.registered_commands.extend(local.app.registered_commands)
 app.registered_commands.extend(authorized.app.registered_commands)
 
 if __name__ == "__main__":
-    app()
+    try:
+        app()
+    except typer.Exit as e:
+        raise e
+    except Exception as e:
+        print(e)
+        raise typer.Exit(code=1)

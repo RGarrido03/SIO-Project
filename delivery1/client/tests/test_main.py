@@ -5,67 +5,171 @@ import pytest
 import os
 from main import app
 from typer.testing import CliRunner
+
 runner = CliRunner()
 
-@pytest.fixture
+# global variables
+DIR_KEYS = "./temp"
+PRIV_KEY_FILE = f"{DIR_KEYS}/my_test_key"
+PUB_KEY_FILE = f"{DIR_KEYS}/my_test_key.pub"
+REP_PUB_KEY_FILE = f"{DIR_KEYS}/repo_key.pub"
+PASSWORD_SECRET_FOR_KEYS = "test_password"
+ORG1 = "UA"
+ORG2 = "FindIt"
+USERS_ORG1 = [
+    ("andre", "Andre Ribeiro", "andre@ua.pt"),
+    ("ruben", "Ruben garrido", "ruben@ua.pt"),
+]
+USERS_ORG2 = [
+    ("luis", "Luis Matos", "luis@findit.pt"),
+    ("pedro", "Pedro Manuel", "pedro@findit.pt"),
+]
+SESSION_FILES_ORG1 = f"{DIR_KEYS}/session/{ORG1}"
+SESSION_FILES_ORG2 = f"{DIR_KEYS}/session/{ORG2}"
+REP_ADDRESS = "localhost:8000"
+TEST_FILES_DIR = "tests/test_files"
+
+
+@pytest.fixture(scope="session")
 def prepare_env():
-    try:
-        os.environ["REP_ADDRESS"] = "localhost:8000"
-        result = runner.invoke(app, ["rep_ping"])
-        if result.exit_code != 0:
-
-            raise Exception("Repository is not available")
-
-        dir_keys = "./temp"
-        priv_key_file =f"{dir_keys}/my_test_key"
-        pub_key_file =f"{dir_keys}/my_test_key.pub"
-        # Public key file vai estar no mesmo sitio mas com .pub
-        password_secret_for_keys = "test_password"
-
-        result = runner.invoke(app, ["rep_subject_credentials", password_secret_for_keys, priv_key_file])
-        if result.exit_code != 0:
-            raise Exception("Error creating subject credentials")
-
-        #get pub key of the repository
-        rep_pub_key_file = f"{dir_keys}/repo_key.pub"
-        result = runner.invoke(app, ["rep_get_pub_key", rep_pub_key_file])
-        if result.exit_code != 0:
-            raise Exception("Error getting public key")
-
-        os.environ["REP_PUB_KEY"] = rep_pub_key_file # get it first
-    # TODO falr com ruben, uma vez que todos vao usar a mesma key, wich is not good but it's for the test
-        #create 2 org
-        org1 = "UA"
-        org2 = "FindIt"
-        users_org1 = [("andre", "Andre Ribeiro", "andre@ua.pt"), ("ruben", "Ruben garrido", "ruben@ua.pt")]
-        users_org2 = [("luis", "Luis Matos", "luis@findit.pt"), ("pedro", "Pedro Manuel", "pedro@findit.pt")]
-        # rep_create_org <organization> <username> <name> <email> <public key file>
-        result = runner.invoke(app, ["rep_create_org", org1, users_org1[0][0], "\"" + users_org1[0][1] + "\"", users_org1[0][2], pub_key_file])
-
-        print(result.exception)
-        if result.exit_code != 0:
-            raise Exception("Error creating organization 1")
-
-        result = runner.invoke(app, ["rep_create_org", org2, users_org2[1][0], users_org2[1][1], users_org2[1][2], pub_key_file])
-        if result.exit_code != 0:
-            raise Exception("Error creating organization 2")
-         # neste momento o andre e o luis  estao nas orgs 1 e 2 respectivamente
+    os.environ["REP_ADDRESS"] = REP_ADDRESS
+    os.environ["REP_PUB_KEY"] = REP_PUB_KEY_FILE
 
 
-
-        # create_session
-        session_file = f"{dir_keys}/session/{org1}/{users_org1[0][0]}"
-        result = runner.invoke(app, ["rep_create_session", org1, users_org1[0][0], password_secret_for_keys, priv_key_file])
-        if result.exit_code != 0:
-            raise Exception("Error creating session for org1")
-
-    except Exception as e:
-        print(e)
+def test_1_ping(prepare_env):
+    result = runner.invoke(app, ["rep_ping"])
+    assert result.exit_code == 0
 
 
+def test_2_get_public_key(prepare_env):
+    result = runner.invoke(app, ["rep_get_pub_key", REP_PUB_KEY_FILE])
+    assert result.exit_code == 0
 
-def test_prepare_env(prepare_env):
-    assert os.environ["REP_ADDRESS"] == "localhost:8000"
+
+def test_3_generate_keys(prepare_env):
+    result = runner.invoke(
+        app, ["rep_subject_credentials", PASSWORD_SECRET_FOR_KEYS, PRIV_KEY_FILE]
+    )
+    assert result.exit_code == 0
+
+
+def test_4_create_organizations(prepare_env):
+    # o andre e o luis estao nas orgs 1 e 2 respectivamente
+    result = runner.invoke(
+        app,
+        [
+            "rep_create_org",
+            ORG1,
+            USERS_ORG1[0][0],
+            '"' + USERS_ORG1[0][1] + '"',
+            USERS_ORG1[0][2],
+            PUB_KEY_FILE,
+        ],
+    )
+    assert result.exit_code == 0
+
+    result = runner.invoke(
+        app,
+        [
+            "rep_create_org",
+            ORG2,
+            USERS_ORG2[0][0],
+            USERS_ORG2[0][1],
+            USERS_ORG2[0][2],
+            PUB_KEY_FILE,
+        ],
+    )
+    assert result.exit_code == 0
+
+
+def test_5_create_session(prepare_env):
+    # rep_create_session <organization> <username> <password> <private key file>
+    session_file_andre = f"{DIR_KEYS}/session/{ORG1}/{USERS_ORG1[0][0]}"
+    result = runner.invoke(
+        app,
+        [
+            "rep_create_session",
+            ORG1,
+            USERS_ORG1[0][0],
+            PASSWORD_SECRET_FOR_KEYS,
+            PRIV_KEY_FILE,
+            session_file_andre,
+        ],
+    )
+    assert result.exit_code == 0
+
+    session_file_luis = f"{DIR_KEYS}/session/{ORG2}/{USERS_ORG2[0][0]}"
+    result = runner.invoke(
+        app,
+        [
+            "rep_create_session",
+            ORG2,
+            USERS_ORG2[0][0],
+            PASSWORD_SECRET_FOR_KEYS,
+            PRIV_KEY_FILE,
+            session_file_luis,
+        ],
+    )
+    assert result.exit_code == 0
+
+
+def test_6_add_doc(prepare_env):
+    """
+    here we add at least 3 docs to each org
+    belongs to authorized commands
+    we will test inserting the sema 3 docs to each org
+    org1 , org1_user1
+        -> doc1
+        -> doc2
+        -> doc3
+    org2, org2_user
+        -> doc1
+        -> doc2
+        -> doc3
+    :return:
+    """
+    # CASO POSITIVO
+    # org1 -> andre
+    # rep_add_doc <session file> <document name> <file>
+
+    for doc in ["doc1", "doc2", "doc3"]:
+        result = runner.invoke(
+            app,
+            [
+                "rep_add_doc",
+                f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}",
+                doc,
+                f"{TEST_FILES_DIR}/{doc}",
+            ],
+        )
+        assert result.exit_code == 0
+
+    # org2 -> luis
+    for doc in ["doc1", "doc2", "doc3"]:
+        result = runner.invoke(
+            app,
+            [
+                "rep_add_doc",
+                f"{SESSION_FILES_ORG2}/{USERS_ORG2[0][0]}",
+                doc,
+                f"{TEST_FILES_DIR}/{doc}",
+            ],
+        )
+        assert result.exit_code == 0
+
+    # CASO NEGATIVO
+    # repete o doc2 numa org
+    result = runner.invoke(
+        app,
+        [
+            "rep_add_doc",
+            f"{SESSION_FILES_ORG2}/{USERS_ORG2[0][0]}",
+            "doc2",
+            f"{TEST_FILES_DIR}/doc2",
+        ],
+    )
+    assert result.exit_code == -1
+
 
 @pytest.fixture
 def cleanup_env():

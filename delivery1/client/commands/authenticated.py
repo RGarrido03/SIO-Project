@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -7,7 +6,7 @@ from tabulate import tabulate
 
 from utils.consts import DOCUMENT_URL, SUBJECT_URL
 from utils.request import request_session
-from utils.types import RepPublicKey, RepAddress
+from utils.types import RepPublicKey, RepAddress, PathWithCheck
 
 app = typer.Typer()
 
@@ -17,7 +16,7 @@ app = typer.Typer()
 def list_subjects(
     repository_public_key: RepPublicKey,
     repository_address: RepAddress,
-    session_file: Path,
+    session_file: PathWithCheck,
     username: Annotated[str | None, typer.Argument()] = None,
 ):
     params = {"username": username}
@@ -52,7 +51,7 @@ def list_subjects(
 def list_documents(
     repository_public_key: RepPublicKey,
     repository_address: RepAddress,
-    session_file: Path,
+    session_file: PathWithCheck,
     username: Annotated[
         str | None,
         typer.Option("-s", "--username", help="Filter by username"),

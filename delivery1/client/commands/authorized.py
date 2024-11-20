@@ -13,7 +13,7 @@ from utils.consts import DOCUMENT_URL, SUBJECT_URL
 from utils.encryption.encryptors import encrypt_symmetric
 from utils.output import print_subject, print_doc_metadata
 from utils.request import request_session
-from utils.types import RepPublicKey, RepAddress
+from utils.types import RepPublicKey, RepAddress, PathWithCheck
 
 app = typer.Typer()
 
@@ -23,51 +23,48 @@ app = typer.Typer()
 def add_document(
     repository_public_key: RepPublicKey,
     repository_address: RepAddress,
-    session_file: Path,
+    session_file: PathWithCheck,
     doc_name: str,
     file: Path,
 ):
-    try:
-        # check if existes
-        # enc doc with alg and key
+    # check if existes
+    # enc doc with alg and key
 
-        f = open(file, "rb")
-        file_readed = f.read()
+    f = open(file, "rb")
+    file_readed = f.read()
 
-        # encrypt file
-        alg = "AES"  # TODO OVERRIDE THIS IN THE FUTURE
-        key = os.urandom(32)
-        iv = os.urandom(16)
-        enc_file = encrypt_symmetric(file_readed, key, iv)
-        file_handle = sha256(enc_file).hexdigest()
+    # encrypt file
+    alg = "AES"  # TODO OVERRIDE THIS IN THE FUTURE
+    key = os.urandom(32)
+    iv = os.urandom(16)
+    enc_file = encrypt_symmetric(file_readed, key, iv)
+    file_handle = sha256(enc_file).hexdigest()
 
-        enc_file = enc_file.decode()
-        f.close()
+    enc_file = enc_file.decode()
+    f.close()
 
-        meta = {
-            "name": doc_name,
-            "file_handle": file_handle,
-            "acl": {},
-            "organization_name": "",
-            "creator_username": "",
-            "alg": alg,
-            "key": base64.encodebytes(key).decode(),
-            "iv": base64.encodebytes(iv).decode(),
-            "file_content": enc_file,
-        }
+    meta = {
+        "name": doc_name,
+        "file_handle": file_handle,
+        "acl": {},
+        "organization_name": "",
+        "creator_username": "",
+        "alg": alg,
+        "key": base64.encodebytes(key).decode(),
+        "iv": base64.encodebytes(iv).decode(),
+        "file_content": enc_file,
+    }
 
-        body, _ = request_session(
-            "POST",
-            f"{repository_address}{DOCUMENT_URL}",
-            meta,
-            session_file.read_bytes(),
-            repository_public_key,
-        )
+    body, _ = request_session(
+        "POST",
+        f"{repository_address}{DOCUMENT_URL}",
+        meta,
+        session_file.read_bytes(),
+        repository_public_key,
+    )
 
-        body = json.loads(body)
-        print_doc_metadata(body)
-    except Exception as e:
-        print(e)
+    body = json.loads(body)
+    print_doc_metadata(body)
 
 
 # rep_get_doc_metadata <session file> <document name>
@@ -75,37 +72,33 @@ def add_document(
 def get_document_metadata(
     repository_public_key: RepPublicKey,
     repository_address: RepAddress,
-    session_file: Path,
+    session_file: PathWithCheck,
     doc_name: str,
 ) -> tuple[str, Path, str]:
-    try:
+    body, _ = request_session(
+        "GET",
+        f"{repository_address}{DOCUMENT_URL}/{doc_name}",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+    )
+    body = json.loads(body)
 
-        body, _ = request_session(
-            "GET",
-            f"{repository_address}{DOCUMENT_URL}/{doc_name}",
-            None,
-            session_file.read_bytes(),
-            repository_public_key,
-        )
-        body = json.loads(body)
+    path = f"storage/docs/{body['organization_name']}"
+    if not os.path.exists(path):
+        os.makedirs(path)
 
-        path = f"storage/docs/{body['organization_name']}"
-        if not os.path.exists(path):
-            os.makedirs(path)
+    f = open(f"{path}/{doc_name}.json", "w+")
+    f.write(json.dumps(body))
+    f.close()
 
-        f = open(f"{path}/{doc_name}.json", "w+")
-        f.write(json.dumps(body))
-        f.close()
+    print_doc_metadata(body)
 
-        print_doc_metadata(body)
-
-        return (
-            body["file_handle"],
-            Path(f"{path}/{doc_name}.json"),
-            body["organization_name"],
-        )
-    except Exception as e:
-        print(e)
+    return (
+        body["file_handle"],
+        Path(f"{path}/{doc_name}.json"),
+        body["organization_name"],
+    )
 
 
 # rep_get_doc_file <session file> <document name> [file]
@@ -113,30 +106,26 @@ def get_document_metadata(
 def get_document_file(
     repository_public_key: RepPublicKey,
     repository_address: RepAddress,
-    session_file: Path,
+    session_file: PathWithCheck,
     doc_name: str,
     file: Annotated[Path | None, typer.Argument()] = None,
 ):
-    try:
-        file_handle, enc_meta_file_path, organization = get_document_metadata(
-            repository_public_key, repository_address, session_file, doc_name
-        )
+    file_handle, enc_meta_file_path, organization = get_document_metadata(
+        repository_public_key, repository_address, session_file, doc_name
+    )
 
-        enc_file_path = Path(f"storage/docs/{organization}/{file_handle}")
+    enc_file_path = Path(f"storage/docs/{organization}/{file_handle}")
 
-        get_file(file_handle, repository_address, enc_file_path)
-        dec_file = decrypt_file(enc_file_path, enc_meta_file_path)
+    get_file(file_handle, repository_address, enc_file_path)
+    dec_file = decrypt_file(enc_file_path, enc_meta_file_path)
 
-        if file:
-            with file.open("wb+") as f:
-                f.write(dec_file)
-                print(f"File saved at {file}")
-            return
+    if file:
+        with file.open("wb+") as f:
+            f.write(dec_file)
+            print(f"File saved at {file}")
+        return
 
-        print(dec_file.decode())
-
-    except Exception as e:
-        print(e)
+    print(dec_file.decode())
 
 
 # rep_delete_doc <session file> <document name>
@@ -144,26 +133,23 @@ def get_document_file(
 def delete_document(
     repository_public_key: RepPublicKey,
     repository_address: RepAddress,
-    session_file: Path,
+    session_file: PathWithCheck,
     doc_name: str,
 ):
-    try:
-        body, _ = request_session(
-            "DELETE",
-            f"{repository_address}{DOCUMENT_URL}/{doc_name}",
-            None,
-            session_file.read_bytes(),
-            repository_public_key,
-        )
-        print(body.strip('"'))
-    except Exception as e:
-        print(e)
+    body, _ = request_session(
+        "DELETE",
+        f"{repository_address}{DOCUMENT_URL}/{doc_name}",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+    )
+    print(body.strip('"'))
 
 
 # rep_add_subject <session file> <username> <name> <email> <credentials file>
 @app.command("rep_add_subject")
 def add_subject(
-    session_file: Path,
+    session_file: PathWithCheck,
     username: str,
     name: str,
     email: str,
@@ -197,7 +183,7 @@ def add_subject(
 def suspend_subject(
     repository_public_key: RepPublicKey,
     repository_address: RepAddress,
-    session_file: Path,
+    session_file: PathWithCheck,
     username: str,
 ):
     params = {"username": username, "active": False}
@@ -218,7 +204,7 @@ def suspend_subject(
 def activate_subject(
     repository_public_key: RepPublicKey,
     repository_address: RepAddress,
-    session_file: Path,
+    session_file: PathWithCheck,
     username: str,
 ):
     params = {"username": username, "active": True}
