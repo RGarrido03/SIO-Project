@@ -4,4 +4,5 @@ cryptography
 pyjwt
 pytest
 requests
+tabulate
 typer

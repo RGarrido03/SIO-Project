@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+from tabulate import tabulate
 
 from utils.consts import DOCUMENT_URL, SUBJECT_URL
 from utils.request import request_session
@@ -30,8 +31,21 @@ def list_subjects(
         params=params,
     )
     body = json.loads(body)
-    print(body)
-    ...
+
+    headers = {
+        "username": "Username",
+        "full_name": "Name",
+        "active": "Active",
+    }
+    body = [{key: doc.get(key) for key in headers.keys()} for doc in body]
+
+    print(
+        tabulate(
+            body,
+            headers=headers,
+            tablefmt="rounded_outline",
+        )
+    )
 
 
 @app.command("rep_list_docs")
@@ -68,4 +82,21 @@ def list_documents(
         params=params,
     )
     body = json.loads(body)
-    print(body)
+
+    headers = {
+        "file_handle": "File handle",
+        "name": "Name",
+        "organization_name": "Organization",
+        "creator_username": "Creator",
+        "deleter_username": "Deleter",
+        "acl": "ACL",
+    }
+    body = [{key: doc.get(key) for key in headers.keys()} for doc in body]
+
+    print(
+        tabulate(
+            body,
+            headers=headers,
+            tablefmt="rounded_outline",
+        )
+    )

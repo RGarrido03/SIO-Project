@@ -6,6 +6,7 @@ from typing import Annotated
 
 import requests
 import typer
+from tabulate import tabulate
 
 from utils.consts import ORGANIZATION_URL, SUBJECT_URL, DOCUMENT_URL, REPOSITORY_URL
 from utils.encryption.loaders import load_private_key
@@ -57,9 +58,18 @@ def list_organizations(
 ):
     response = requests.get(f"{repository_address}{ORGANIZATION_URL}")
     body = response.json()
-    print("Organizations:")
-    for org in body:
-        print(" - " + org["name"])
+
+    headers = {
+        "name": "Name",
+    }
+
+    print(
+        tabulate(
+            body,
+            headers=headers,
+            tablefmt="rounded_outline",
+        )
+    )
 
 
 @app.command("rep_create_session")

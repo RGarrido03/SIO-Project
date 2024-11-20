@@ -11,6 +11,7 @@ from commands.anonymous import get_file
 from commands.local import decrypt_file
 from utils.consts import DOCUMENT_URL, SUBJECT_URL
 from utils.encryption.encryptors import encrypt_symmetric
+from utils.output import print_subject, print_doc_metadata
 from utils.request import request_session
 from utils.types import RepPublicKey, RepAddress
 
@@ -25,18 +26,14 @@ def add_document(
     session_file: Path,
     doc_name: str,
     file: Path,
-    # organization_name: str,
-    # creator_username: str,
-    # alg: str,
-    # key: str,
-    # acl: dict,
 ):
     try:
-        # checj if existes
+        # check if existes
         # enc doc with alg and key
 
         f = open(file, "rb")
         file_readed = f.read()
+
         # encrypt file
         alg = "AES"  # TODO OVERRIDE THIS IN THE FUTURE
         key = os.urandom(32)
@@ -68,8 +65,7 @@ def add_document(
         )
 
         body = json.loads(body)
-        print(body)
-
+        print_doc_metadata(body)
     except Exception as e:
         print(e)
 
@@ -93,7 +89,6 @@ def get_document_metadata(
         )
         body = json.loads(body)
 
-        # store this in a file
         path = f"storage/docs/{body['organization_name']}"
         if not os.path.exists(path):
             os.makedirs(path)
@@ -102,7 +97,8 @@ def get_document_metadata(
         f.write(json.dumps(body))
         f.close()
 
-        print(body)
+        print_doc_metadata(body)
+
         return (
             body["file_handle"],
             Path(f"{path}/{doc_name}.json"),
@@ -129,8 +125,8 @@ def get_document_file(
         enc_file_path = Path(f"storage/docs/{organization}/{file_handle}")
 
         get_file(file_handle, repository_address, enc_file_path)
-
         dec_file = decrypt_file(enc_file_path, enc_meta_file_path)
+
         if file:
             with file.open("wb+") as f:
                 f.write(dec_file)
@@ -165,8 +161,6 @@ def delete_document(
 
 
 # rep_add_subject <session file> <username> <name> <email> <credentials file>
-
-
 @app.command("rep_add_subject")
 def add_subject(
     session_file: Path,
@@ -195,10 +189,7 @@ def add_subject(
         repository_public_key,
     )
     body = json.loads(body)
-
-    print(f"{body}")
-
-    # print(f"Created organization {body['name']}")
+    print_subject(body)
 
 
 # rep_suspend_subject <session file> <username>
@@ -219,7 +210,7 @@ def suspend_subject(
         params=params,
     )
     body = json.loads(body)
-    print(body)
+    print_subject(body)
 
 
 # rep_activate_subject <session file> <username>
@@ -240,4 +231,4 @@ def activate_subject(
         params=params,
     )
     body = json.loads(body)
-    print(body)
+    print_subject(body)
