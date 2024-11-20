@@ -1,8 +1,5 @@
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
-from cryptography.hazmat.primitives.asymmetric.types import (
-    PublicKeyTypes,
-)
 
 
 def load_private_key(
@@ -16,5 +13,8 @@ def load_private_key(
     return pk, pk.public_key()
 
 
-def load_public_key(public_key: str) -> PublicKeyTypes:
-    return serialization.load_pem_public_key(public_key.encode())
+def load_public_key(public_key: str) -> RSAPublicKey:
+    key = serialization.load_pem_public_key(public_key.encode())
+    if not isinstance(key, RSAPublicKey):
+        raise ValueError("Invalid public key type (expected RSA)")
+    return key
