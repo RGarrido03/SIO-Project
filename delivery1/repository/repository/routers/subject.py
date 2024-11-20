@@ -8,7 +8,7 @@ from repository.crud.subject_organization_link import crud_subject_organization_
 from repository.models.permission import RoleEnum
 from repository.models.relations import SubjectOrganizationLink
 from repository.models.session import Session, SessionCreate
-from repository.models.subject import SubjectCreate, Subject
+from repository.models.subject import SubjectCreate, Subject, SubjectActiveListing
 from repository.utils.auth.authorization_handler import get_current_user
 
 router = APIRouter(prefix="/subject", tags=["Subject"])
@@ -39,6 +39,19 @@ async def add_role(
 ) -> Session:
     try:
         return await crud_subject_organization_link.add_role_to_session(link, role)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("")
+async def get_subjects_by_organization(
+    link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
+    username: str | None = None,
+) -> list[SubjectActiveListing]:
+    try:
+        return await crud_subject_organization_link.get_subjects_by_organization(
+            link.organization_name, username
+        )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
