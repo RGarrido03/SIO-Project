@@ -228,19 +228,14 @@ def test_10_get_doc_file(prepare_env):
 
 
 def test_11_get_doc_metadata(prepare_env):
-    # Positive
-    result = runner.invoke(
-        app,
-        ["rep_get_doc_metadata", f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}", "doc1"],
-    )
-    assert result.exit_code == 0
+    # Positive and negative case
+    for name, code in [("doc1", 0), ("doc4", -1)]:
+        result = runner.invoke(
+            app,
+            ["rep_get_doc_metadata", f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}", name],
+        )
+        assert result.exit_code == code
 
-    # Negative
-    result = runner.invoke(
-        app,
-        ["rep_get_doc_metadata", f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}", "doc4"],
-    )
-    assert result.exit_code == -1
 
 
 def test_12_decrypt_file(prepare_env):
