@@ -1,8 +1,13 @@
+import base64
+import json
 from pathlib import Path
+from hashlib import sha256
 
 import typer
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+
+from utils.encryption.encryptors import decrypt_symmetric
 
 app = typer.Typer()
 
@@ -30,3 +35,37 @@ def generate_credentials(password: str, credentials_file: Path) -> None:
 
     with credentials_file.with_suffix(".pub").open("wb+") as f:
         f.write(pem_public_key)
+
+
+# rep_decrypt_file <encrypted file> <encryption metadata>
+@app.command("rep_decrypt_file")
+def decrypt_file(encrypted_file: Path, encryption_metadata: Path) -> None:
+    with encrypted_file.open("rb") as f:
+        encrypted_data = f.read()
+
+    with encryption_metadata.open("r") as f:
+        metadata = json.load(f)
+
+    # check integrity of  file
+    mic = sha256(encrypted_data).hexdigest()
+    print(mic)
+
+    # if metadata["file_handle"] != mic:
+    #     print("File integrity check failed")
+    #     raise typer.Exit(code=1)
+
+    encrypted_data = base64.encodebytes(encrypted_data)
+    # TODO
+    if metadata["alg"] != "AES":
+        print("Unsupported algorithm")
+        raise typer.Exit(code=1)
+
+    key = base64.decodebytes(metadata["key"].encode())
+    iv = base64.decodebytes(metadata["iv"].encode())
+
+
+    data = decrypt_symmetric(encrypted_data, key, iv)
+
+    with encrypted_file.with_suffix(".dec").open("wb+") as f:
+        f.write(data)
+

@@ -23,19 +23,25 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
     async def add_new(self, document: DocumentCreate, file: str) -> Document:
         file_content = base64.decodebytes(file.encode())
         if (sha256(file.encode()).hexdigest()) != document.file_handle:
-
             raise ValueError("File handle does not match the file content")
 
-        path = f"static/{document.organization_name}"
+        path = f"static/docs"
         os.makedirs(path, exist_ok=True)
         with open(f"{path}/{document.file_handle}", "wb") as f:
             f.write(file_content)
 
         return await self.create(document)
 
-    async def get_by_name(self, name: str) -> Document | None:
+    async def get_by_name_and_organization(
+        self, name: str, organization_name: str
+    ) -> Document | None:
         async with get_session() as session:
-            result = await session.exec(select(Document).where(Document.name == name))
+            result = await session.exec(
+                select(Document)
+                .where(Document.name == name)
+                .where(Document.organization_name == organization_name)
+            )
+
             return result.first()
 
     async def get_all(
@@ -43,12 +49,16 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
         username: str | None = None,
         date: datetime | None = None,
         date_order: Literal["nt", "ot", "et"] = "nt",
+        organization_name: str | None = None,
     ) -> list[Document]:
         async with get_session() as session:
             query: SelectOfScalar[Document] = select(Document)
 
             if username:
                 query = query.where(Document.creator_username == username)
+
+            if organization_name:
+                query = query.where(Document.organization_name == organization_name)
 
             if date:
                 operators = {

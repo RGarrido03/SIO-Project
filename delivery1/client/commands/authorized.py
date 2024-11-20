@@ -44,7 +44,6 @@ def add_document(
         file_handle = sha256(enc_file.encode()).hexdigest()
         f.close()
 
-
         meta = {
             "name": doc_name,
             "file_handle": file_handle,
@@ -53,7 +52,7 @@ def add_document(
             "creator_username": "",
             "alg": alg,
             "key": base64.encodebytes(key).decode(),
-            "iv": base64.encodebytes(iv).decode() ,
+            "iv": base64.encodebytes(iv).decode(),
             "file_content": enc_file
         }
 
@@ -65,12 +64,44 @@ def add_document(
             repository_public_key,
         )
 
-
         body = json.loads(body)
         print(body)
 
 
 
 
+    except Exception as e:
+        print(e)
+
+
+# rep_get_doc_metadata <session file> <document name>
+@app.command("rep_get_doc_metadata")
+def get_document_metadata(
+        repository_public_key: RepPublicKey,
+        repository_address: RepAddress,
+        session_file: Path,
+        doc_name: str,
+):
+    try:
+
+        body, _ = request_session(
+            "GET",
+            f"{repository_address}{DOCUMENT_URL}/{doc_name}",
+            None,
+            session_file.read_bytes(),
+            repository_public_key,
+        )
+        body = json.loads(body)
+
+        # store this in a file
+        path = f"storage/docs/{body['organization_name']}"
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        f = open(f"{path}/{doc_name}.json", "w+")
+        f.write(json.dumps(body))
+        f.close()
+
+        print(body)
     except Exception as e:
         print(e)
