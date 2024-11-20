@@ -10,22 +10,29 @@ from utils.types import RepPublicKey, RepAddress
 
 app = typer.Typer()
 
+# rep_list_subjects <session file> [username]
 @app.command("rep_list_subjects")
 def list_subjects(
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
     session_file: Path,
-    username: str | None = None
+    username:Annotated[ str | None, typer.Argument()] = None
 ):
     params = {
-        "username": username,
-        "active": bool
+        "username": username
     }
 
     body, _ = request_session(
-        "GET", SUBJECT_URL, None, session_file.read_bytes(), params=params
+        "GET",
+        f"{repository_address}{SUBJECT_URL}",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+        params=params,
     )
     body = json.loads(body)
     print(body)
-
+    ...
 
 @app.command("rep_list_docs")
 def list_documents(
@@ -55,6 +62,54 @@ def list_documents(
     body, _ = request_session(
         "GET",
         f"{repository_address}{DOCUMENT_URL}",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+        params=params,
+    )
+    body = json.loads(body)
+    print(body)
+
+
+
+# rep_suspend_subject <session file> <username>
+@app.command("rep_suspend_subject")
+def suspend_subject(
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: Path,
+    username: str
+):
+    params = {
+        "username": username,
+        "active": False
+    }
+    body, _ = request_session(
+        "PATCH",
+        f"{repository_address}{SUBJECT_URL}/activation",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+        params=params,
+    )
+    body = json.loads(body)
+    print(body)
+
+# rep_activate_subject <session file> <username>
+@app.command("rep_activate_subject")
+def activate_subject(
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: Path,
+    username: str
+):
+    params = {
+        "username": username,
+        "active": True
+    }
+    body, _ = request_session(
+        "PATCH",
+        f"{repository_address}{SUBJECT_URL}/activation",
         None,
         session_file.read_bytes(),
         repository_public_key,

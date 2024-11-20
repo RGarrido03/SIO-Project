@@ -9,7 +9,7 @@ import typer
 
 from commands.anonymous import get_file
 from commands.local import decrypt_file
-from utils.consts import DOCUMENT_URL
+from utils.consts import DOCUMENT_URL, SUBJECT_URL
 from utils.encryption.encryptors import encrypt_key, encrypt_symmetric
 from utils.request import request_session
 from utils.types import RepPublicKey, RepAddress
@@ -161,3 +161,39 @@ def delete_document(
         print(body.strip('"'))
     except Exception as e:
         print(e)
+
+
+# rep_add_subject <session file> <username> <name> <email> <credentials file>
+
+@app.command("rep_add_subject")
+def add_subject(
+        session_file: Path,
+        username: str,
+        name: str,
+        email: str,
+        public_key_file: Path,
+        repository_public_key: RepPublicKey,
+        repository_address: RepAddress,
+):
+    with public_key_file.open() as f:
+        public_key = f.read()
+
+    obj = {
+            "username": username,
+            "full_name": name,
+            "email": email,
+            "public_key": public_key,
+    }
+
+    body, _ = request_session(
+        "POST",
+        f"{repository_address}{SUBJECT_URL}",
+        obj,
+        session_file.read_bytes(),
+        repository_public_key,
+    )
+    body = json.loads(body)
+
+    print(f"Created subject {body}")
+
+    # print(f"Created organization {body['name']}")

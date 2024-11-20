@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Depends, Security
 from starlette.requests import Request
 
+from repository.crud.organization import crud_organization
 from repository.crud.subject import crud_subject
 from repository.crud.subject_organization_link import crud_subject_organization_link
 from repository.models.permission import RoleEnum
@@ -17,9 +18,12 @@ router = APIRouter(prefix="/subject", tags=["Subject"])
 @router.post("")
 async def create_subject(
     subject: SubjectCreate,
-    _: SubjectOrganizationLink = Security(get_current_user),
+    link: SubjectOrganizationLink = Security(get_current_user),
 ) -> Subject:
     obj = await crud_subject.create(subject)
+    await crud_organization.add_subject(
+        link.organization_name, subject.username, obj.public_key.id
+    )
     return obj.subject
 
 

@@ -64,7 +64,7 @@ def request_session(
     session: bytes,
     repository_public_key: RSAPublicKey,
     content_type: str = "application/json",
-    params: dict[str, str] | None = None,
+    params: dict[str, str | bool] | None = None,
 
 ) -> tuple[str, requests.Response]:
     payload = jwt.decode(
