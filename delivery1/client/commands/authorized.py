@@ -28,7 +28,7 @@ def add_document(
     file: Path,
 ):
     try:
-        # checj if existes
+        # check if existes
         # enc doc with alg and key
 
         f = open(file, "rb")
