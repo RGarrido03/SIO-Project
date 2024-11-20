@@ -17,28 +17,28 @@ python3 main.py rep_decrypt_file filename storage/docs/UA/filename.json
 ```bash
 #All commandos
 # local
-@app.command("rep_subject_credentials")
+@app.command("rep_subject_credentials") X
 @app.command("rep_decrypt_file")
 
 #anonymous
-@app.command("rep_create_org")
-@app.command("rep_list_orgs")
-@app.command("rep_create_session")
+@app.command("rep_create_org") X
+@app.command("rep_list_orgs") X
+@app.command("rep_create_session") X
 @app.command("rep_get_file")
-@app.command("rep_get_pub_key")
-@app.command("rep_ping")
+@app.command("rep_get_pub_key") X
+@app.command("rep_ping") X
 
 #authenticated
-@app.command("rep_list_subjects")
-@app.command("rep_list_docs")
+@app.command("rep_list_subjects") X
+@app.command("rep_list_docs") X
 
 #authorized
-@app.command("rep_add_doc")
-@app.command("rep_get_doc_metadata")
-@app.command("rep_get_doc_file")
-@app.command("rep_delete_doc")
-@app.command("rep_add_subject")
-@app.command("rep_suspend_subject")
-@app.command("rep_activate_subject")
+@app.command("rep_add_doc") X
+@app.command("rep_get_doc_metadata") X
+@app.command("rep_get_doc_file") X
+@app.command("rep_delete_doc") X
+@app.command("rep_add_subject") X
+@app.command("rep_suspend_subject") X
+@app.command("rep_activate_subject") X
 
 ```

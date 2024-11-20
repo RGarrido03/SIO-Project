@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 # prepare env
@@ -171,6 +172,158 @@ def test_6_add_doc(prepare_env):
     assert result.exit_code == -1
 
 
-@pytest.fixture
-def cleanup_env():
-    pass
+def test_7_list_docs(prepare_env):
+
+    # org1 -> andre
+    result = runner.invoke(
+        app,
+        [
+            "rep_list_docs",
+            f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}",
+        ],
+    )
+
+    assert result.exit_code == 0
+
+
+def test_8_list_orgs(prepare_env):
+    result = runner.invoke(
+        app,
+        ["rep_list_orgs"],
+    )
+
+    assert result.exit_code == 0
+
+def test_9_list_subjects(prepare_env):
+    result = runner.invoke(
+        app,
+        ["rep_list_subjects", f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}"],
+    )
+
+    assert result.exit_code == 0
+
+
+def test_10_get_doc_file(prepare_env):
+    result = runner.invoke(
+        app,
+        [
+            "rep_get_doc_file",
+            f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}",
+            "doc1",
+            f"{TEST_FILES_DIR}/doc1",
+        ],
+    )
+    assert result.exit_code == 0
+
+    result = runner.invoke(
+        app,
+        [
+            "rep_get_doc_file",
+            f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}",
+            "doc55",
+            f"{TEST_FILES_DIR}/doc1",
+        ],
+    )
+    assert result.exit_code == -1
+
+
+def test_11_get_doc_metadata(prepare_env):
+    # Positive
+    result = runner.invoke(
+        app,
+        ["rep_get_doc_metadata", f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}", "doc1"],
+    )
+    assert result.exit_code == 0
+
+    # Negative
+    result = runner.invoke(
+        app,
+        ["rep_get_doc_metadata", f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}", "doc4"],
+    )
+    assert result.exit_code == -1
+
+
+def test_12_decrypt_file(prepare_env):
+    # get file_handle
+    # Positive
+    file_handles = []
+    for doc in ["doc1", "doc2"]:
+        result = runner.invoke(
+            app,
+            ["rep_get_doc_metadata", f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}", f"{doc}"],
+        )
+        with open(f"storage/docs/{ORG1}/{doc}.json", 'r') as f:
+            metadata = json.loads(f.read())
+        file_handles.append(metadata["file_handle"])
+        assert result.exit_code == 0
+
+    # first get file with file_handle
+    result = runner.invoke(app, ["rep_get_file", file_handles[0], f"{TEST_FILES_DIR}/doc1.enc"])
+
+    result = runner.invoke(app, ["rep_get_file", file_handles[1], f"{TEST_FILES_DIR}/doc2.enc"])
+
+    for error_code, doc in zip([0,1], ["doc1", "doc2"]):
+        # decrypt file
+        result = runner.invoke(
+            app,
+            [
+                "rep_decrypt_file",
+                f"{TEST_FILES_DIR}/{doc}.enc",
+                f"storage/docs/{ORG1}/doc1.json",
+            ],
+        )
+
+        assert result.exit_code == error_code
+
+
+def test_13_delete_doc(prepare_env):
+    for name, code in [("doc3", 0), ("doc45", -1)]:
+        result = runner.invoke(
+            app,
+            [
+                "rep_delete_doc",
+                f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}",
+                name,
+            ],
+        )
+        assert result.exit_code == code
+
+
+def test_14_add_subject(prepare_env):
+    # Positive and negative case (duplicate)
+    for code in [0, -1]:
+        result = runner.invoke(
+            app,
+            [
+                "rep_add_subject",
+                f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}",
+                USERS_ORG1[1][0],
+                USERS_ORG1[1][1],
+                USERS_ORG1[1][2],
+                PUB_KEY_FILE,
+            ],
+        )
+        assert result.exit_code == code
+
+
+def test_15_suspend_subject(prepare_env):
+    result = runner.invoke(
+        app,
+        [
+            "rep_suspend_subject",
+            f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}",
+            USERS_ORG1[1][0],
+        ],
+    )
+    assert result.exit_code == 0
+
+def test_16_activate_subject(prepare_env):
+    result = runner.invoke(
+        app,
+        [
+            "rep_suspend_subject",
+            f"{SESSION_FILES_ORG1}/{USERS_ORG1[0][0]}",
+            USERS_ORG1[1][0],
+        ],
+    )
+    assert result.exit_code == 0
