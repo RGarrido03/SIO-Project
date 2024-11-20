@@ -6,7 +6,7 @@ from hashlib import sha256
 from typing import Literal
 
 from fastapi import UploadFile
-from sqlalchemy.sql.operators import ge, le, eq
+from sqlalchemy.sql.operators import ge, le, eq, exists
 from sqlmodel import select
 from sqlmodel.sql._expression_select_cls import SelectOfScalar
 
@@ -24,6 +24,11 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
         file_content = base64.decodebytes(file.encode())
         if (sha256(file.encode()).hexdigest()) != document.file_handle:
             raise ValueError("File handle does not match the file content")
+
+        if await self.get_by_name_and_organization(
+            document.name, document.organization_name
+        ):
+            raise ValueError("Document with this name already exists")
 
         path = f"static/docs"
         os.makedirs(path, exist_ok=True)

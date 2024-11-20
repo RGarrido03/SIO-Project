@@ -39,7 +39,7 @@ def generate_credentials(password: str, credentials_file: Path) -> None:
 
 # rep_decrypt_file <encrypted file> <encryption metadata>
 @app.command("rep_decrypt_file")
-def decrypt_file(encrypted_file: Path, encryption_metadata: Path) -> None:
+def decrypt_file(encrypted_file: Path, encryption_metadata: Path) -> bytes:
     with encrypted_file.open("rb") as f:
         encrypted_data = f.read()
 
@@ -47,12 +47,12 @@ def decrypt_file(encrypted_file: Path, encryption_metadata: Path) -> None:
         metadata = json.load(f)
 
     # check integrity of  file
-    mic = sha256(encrypted_data).hexdigest()
-    print(mic)
+    mic = sha256(base64.encodebytes(encrypted_data)).hexdigest()
+    # print(mic)
 
-    # if metadata["file_handle"] != mic:
-    #     print("File integrity check failed")
-    #     raise typer.Exit(code=1)
+    if metadata["file_handle"] != mic:
+        print("File integrity check failed")
+        raise typer.Exit(code=1)
 
     encrypted_data = base64.encodebytes(encrypted_data)
     # TODO
@@ -63,9 +63,11 @@ def decrypt_file(encrypted_file: Path, encryption_metadata: Path) -> None:
     key = base64.decodebytes(metadata["key"].encode())
     iv = base64.decodebytes(metadata["iv"].encode())
 
-
     data = decrypt_symmetric(encrypted_data, key, iv)
 
     with encrypted_file.with_suffix(".dec").open("wb+") as f:
         f.write(data)
 
+    print(f"File saved as {encrypted_file.with_suffix('.dec')}")
+
+    return data
