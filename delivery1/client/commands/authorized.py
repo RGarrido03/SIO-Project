@@ -1,16 +1,16 @@
 import base64
 import json
 import os
-from pathlib import Path
-from pprint import pprint
-from typing import Annotated
 from hashlib import sha256
+from pathlib import Path
+from typing import Annotated
+
 import typer
 
 from commands.anonymous import get_file
 from commands.local import decrypt_file
 from utils.consts import DOCUMENT_URL, SUBJECT_URL
-from utils.encryption.encryptors import encrypt_key, encrypt_symmetric
+from utils.encryption.encryptors import encrypt_symmetric
 from utils.request import request_session
 from utils.types import RepPublicKey, RepAddress
 

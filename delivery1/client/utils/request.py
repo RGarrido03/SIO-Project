@@ -1,6 +1,5 @@
 import json
 import time
-from pprint import pprint
 from typing import Literal, Any
 
 import jwt

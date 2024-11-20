@@ -16,7 +16,6 @@ from repository.utils.encryption.encryptors import (
     encrypt_symmetric,
     encrypt_asymmetric,
 )
-from repository.utils.encryption.loaders import load_public_key
 
 
 async def decrypt_request_key(request: Request) -> tuple[Request, bytes | None]:
@@ -94,7 +93,7 @@ async def encrypt_response(
 
     iv = os.urandom(16)
     try:
-        public_key = load_public_key(state.public_key)
+        public_key = state.public_key
     except AttributeError:
         public_key = None
 
