@@ -3,4 +3,5 @@ click
 cryptography
 pyjwt
 requests
+tabulate
 typer
