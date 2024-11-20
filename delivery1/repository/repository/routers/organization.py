@@ -8,6 +8,7 @@ from repository.models.organization import (
     OrganizationCreate,
     OrganizationBase,
 )
+from repository.utils.encryption.loaders import load_public_key
 
 router = APIRouter(prefix="/organization", tags=["Organization"])
 
@@ -22,7 +23,7 @@ async def create_organization(
     await crud_organization.add_subject(
         organization.name, subject.subject.username, subject.public_key.id
     )
-    request.state.public_key = subject.public_key.key
+    request.state.public_key = load_public_key(subject.public_key.key)
     return organization
 
 

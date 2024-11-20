@@ -1,6 +1,5 @@
 import json
 import time
-from pprint import pprint
 from typing import Literal, Any
 
 import jwt
@@ -65,7 +64,6 @@ def request_session(
     repository_public_key: RSAPublicKey,
     content_type: str = "application/json",
     params: dict[str, str | bool] | None = None,
-
 ) -> tuple[str, requests.Response]:
     payload = jwt.decode(
         session, algorithms=["HS256"], options={"verify_signature": False}
@@ -74,7 +72,9 @@ def request_session(
         print("Session expired, please create a new one.")
         raise typer.Exit(code=1)
 
-    (req_key, req_data, req_iv) = encrypt_request(obj, repository_public_key, session, payload)
+    (req_key, req_data, req_iv) = encrypt_request(
+        obj, repository_public_key, session, payload
+    )
     response = requests.request(
         method,
         url,
@@ -93,14 +93,14 @@ def request_session(
         print(msg["detail"])
         raise typer.Exit(code=-1)
 
-
     if "IV" not in response.headers:
         return response.content.decode(), response
 
     res_iv = b64_decode_and_unescape(response.headers["IV"])
 
     return (
-        decrypt_symmetric(response.content, payload["keys"][0].encode(), res_iv).decode(),
+        decrypt_symmetric(
+            response.content, payload["keys"][0].encode(), res_iv
+        ).decode(),
         response,
     )
-

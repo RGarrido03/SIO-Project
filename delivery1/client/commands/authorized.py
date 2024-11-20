@@ -1,16 +1,16 @@
 import base64
 import json
 import os
-from pathlib import Path
-from pprint import pprint
-from typing import Annotated
 from hashlib import sha256
+from pathlib import Path
+from typing import Annotated
+
 import typer
 
 from commands.anonymous import get_file
 from commands.local import decrypt_file
 from utils.consts import DOCUMENT_URL, SUBJECT_URL
-from utils.encryption.encryptors import encrypt_key, encrypt_symmetric
+from utils.encryption.encryptors import encrypt_symmetric
 from utils.request import request_session
 from utils.types import RepPublicKey, RepAddress
 
@@ -20,17 +20,16 @@ app = typer.Typer()
 # rep_add_doc <session file> <document name> <file>
 @app.command("rep_add_doc")
 def add_document(
-        repository_public_key: RepPublicKey,
-        repository_address: RepAddress,
-        session_file: Path,
-        doc_name: str,
-        file: Path,
-
-        # organization_name: str,
-        # creator_username: str,
-        # alg: str,
-        # key: str,
-        # acl: dict,
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: Path,
+    doc_name: str,
+    file: Path,
+    # organization_name: str,
+    # creator_username: str,
+    # alg: str,
+    # key: str,
+    # acl: dict,
 ):
     try:
         # checj if existes
@@ -57,7 +56,7 @@ def add_document(
             "alg": alg,
             "key": base64.encodebytes(key).decode(),
             "iv": base64.encodebytes(iv).decode(),
-            "file_content": enc_file
+            "file_content": enc_file,
         }
 
         body, _ = request_session(
@@ -71,9 +70,6 @@ def add_document(
         body = json.loads(body)
         print(body)
 
-
-
-
     except Exception as e:
         print(e)
 
@@ -81,10 +77,10 @@ def add_document(
 # rep_get_doc_metadata <session file> <document name>
 @app.command("rep_get_doc_metadata")
 def get_document_metadata(
-        repository_public_key: RepPublicKey,
-        repository_address: RepAddress,
-        session_file: Path,
-        doc_name: str,
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: Path,
+    doc_name: str,
 ) -> tuple[str, Path, str]:
     try:
 
@@ -107,7 +103,11 @@ def get_document_metadata(
         f.close()
 
         print(body)
-        return body["file_handle"], Path(f"{path}/{doc_name}.json"), body["organization_name"]
+        return (
+            body["file_handle"],
+            Path(f"{path}/{doc_name}.json"),
+            body["organization_name"],
+        )
     except Exception as e:
         print(e)
 
@@ -115,15 +115,16 @@ def get_document_metadata(
 # rep_get_doc_file <session file> <document name> [file]
 @app.command("rep_get_doc_file")
 def get_document_file(
-        repository_public_key: RepPublicKey,
-        repository_address: RepAddress,
-        session_file: Path,
-        doc_name: str,
-        file: Annotated[Path | None, typer.Argument()] = None,
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: Path,
+    doc_name: str,
+    file: Annotated[Path | None, typer.Argument()] = None,
 ):
     try:
-        file_handle, enc_meta_file_path, organization = get_document_metadata(repository_public_key, repository_address,
-                                                                              session_file, doc_name)
+        file_handle, enc_meta_file_path, organization = get_document_metadata(
+            repository_public_key, repository_address, session_file, doc_name
+        )
 
         enc_file_path = Path(f"storage/docs/{organization}/{file_handle}")
 
@@ -145,10 +146,10 @@ def get_document_file(
 # rep_delete_doc <session file> <document name>
 @app.command("rep_delete_doc")
 def delete_document(
-        repository_public_key: RepPublicKey,
-        repository_address: RepAddress,
-        session_file: Path,
-        doc_name: str,
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: Path,
+    doc_name: str,
 ):
     try:
         body, _ = request_session(
@@ -165,24 +166,25 @@ def delete_document(
 
 # rep_add_subject <session file> <username> <name> <email> <credentials file>
 
+
 @app.command("rep_add_subject")
 def add_subject(
-        session_file: Path,
-        username: str,
-        name: str,
-        email: str,
-        public_key_file: Path,
-        repository_public_key: RepPublicKey,
-        repository_address: RepAddress,
+    session_file: Path,
+    username: str,
+    name: str,
+    email: str,
+    public_key_file: Path,
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
 ):
     with public_key_file.open() as f:
         public_key = f.read()
 
     obj = {
-            "username": username,
-            "full_name": name,
-            "email": email,
-            "public_key": public_key,
+        "username": username,
+        "full_name": name,
+        "email": email,
+        "public_key": public_key,
     }
 
     body, _ = request_session(
@@ -199,20 +201,15 @@ def add_subject(
     # print(f"Created organization {body['name']}")
 
 
-
-
 # rep_suspend_subject <session file> <username>
 @app.command("rep_suspend_subject")
 def suspend_subject(
     repository_public_key: RepPublicKey,
     repository_address: RepAddress,
     session_file: Path,
-    username: str
+    username: str,
 ):
-    params = {
-        "username": username,
-        "active": False
-    }
+    params = {"username": username, "active": False}
     body, _ = request_session(
         "PATCH",
         f"{repository_address}{SUBJECT_URL}/activation",
@@ -224,18 +221,16 @@ def suspend_subject(
     body = json.loads(body)
     print(body)
 
+
 # rep_activate_subject <session file> <username>
 @app.command("rep_activate_subject")
 def activate_subject(
     repository_public_key: RepPublicKey,
     repository_address: RepAddress,
     session_file: Path,
-    username: str
+    username: str,
 ):
-    params = {
-        "username": username,
-        "active": True
-    }
+    params = {"username": username, "active": True}
     body, _ = request_session(
         "PATCH",
         f"{repository_address}{SUBJECT_URL}/activation",
