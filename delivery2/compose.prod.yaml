@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: ./repository
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    env_file:
+      - ./repository/.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - static:/repository/static
+    tty: true
+  
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: sio
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+volumes:
+  pg_data:
+  static:
