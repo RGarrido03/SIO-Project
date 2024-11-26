@@ -1,9 +1,15 @@
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Column
 from sqlmodel import SQLModel, Field, Relationship
 
 from repository.models.session import Session
+
+if TYPE_CHECKING:
+    from repository.models.organization import Organization
+    from repository.models.subject import PublicKey
+    from repository.models.subject import Subject
 
 
 class SubjectOrganizationLinkBase(SQLModel):
@@ -19,11 +25,11 @@ class SubjectOrganizationLink(SubjectOrganizationLinkBase, table=True):
     )
 
     # Relationships
-    subject: "Subject" = Relationship(
+    subject: Subject = Relationship(
         back_populates="organization_links", sa_relationship_kwargs={"lazy": "selectin"}
     )
-    organization: "Organization" = Relationship(back_populates="subject_links")
-    publickey: "PublicKey" = Relationship()
+    organization: Organization = Relationship(back_populates="subject_links")
+    publickey: PublicKey = Relationship()
 
 
 class SubjectOrganizationLinkCreate(SubjectOrganizationLinkBase):
