@@ -6,12 +6,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from repository.config.database import get_session
 
-ModelType = TypeVar("ModelType", bound=SQLModel)
-CreateSchemaType = TypeVar("CreateSchemaType", bound=SQLModel)
-PrimaryKeyType = TypeVar("PrimaryKeyType", int, str, uuid.UUID, tuple[str, str])
 
-
-class CRUDBase(Generic[ModelType, CreateSchemaType, PrimaryKeyType]):
+class CRUDBase[ModelType: SQLModel, CreateSchemaType: SQLModel, PrimaryKeyType: (int, str, uuid.UUID, tuple[str, str])]:
     def __init__(
         self,
         model: Type[ModelType],

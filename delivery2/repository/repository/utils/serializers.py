@@ -1,14 +1,12 @@
-from typing import Set, Any, TypeVar
+from typing import Set, Any
+
 from pydantic import BaseModel
-from typing_extensions import Generic
-
-T = TypeVar("T")
 
 
-class SerializableSet(BaseModel, Generic[T]):
+class SerializableSet[T](BaseModel):
     items: Set[T]
 
-    def __init__(self, items: set, **kwargs):
+    def __init__(self, items: set[T], **kwargs: Any) -> None:
         super().__init__(items=items, **kwargs)
 
     class Config:
