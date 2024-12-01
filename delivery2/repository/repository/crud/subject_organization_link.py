@@ -89,6 +89,8 @@ class CRUDSubjectOrganizationLink(
             raise ValueError("Session not found")
 
         if add:
+            if not any(a.role_name == role for a in obj.subject.roles):
+                raise ValueError("Role not found in subject")
             obj.session.roles.add(role)
         else:
             obj.session.roles.remove(role)
