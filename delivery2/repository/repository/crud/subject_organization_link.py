@@ -84,7 +84,7 @@ class CRUDSubjectOrganizationLink(
 
     async def manage_role_in_session(
         self, obj: SubjectOrganizationLink, role: RoleEnum, add: bool
-    ) -> SessionWithSubjectInfo:
+    ) -> str:
         if obj.session is None:
             raise ValueError("Session not found")
 
@@ -96,20 +96,24 @@ class CRUDSubjectOrganizationLink(
             obj.session.roles.remove(role)
 
         obj = await self._add_to_db(obj)
-        return SessionWithSubjectInfo(
-            **obj.session.model_dump() if obj.session is not None else {},
-            username=obj.subject_username,
-            organization=obj.organization_name
+
+        token = create_token(
+            SessionWithSubjectInfo(
+                **obj.session.model_dump(),
+                username=obj.subject_username,
+                organization=obj.organization_name
+            )
         )
+        return token
 
     async def add_role_to_session(
         self, obj: SubjectOrganizationLink, role: RoleEnum
-    ) -> SessionWithSubjectInfo:
+    ) -> str:
         return await self.manage_role_in_session(obj, role, True)
 
     async def drop_role_from_session(
         self, obj: SubjectOrganizationLink, role: RoleEnum
-    ) -> SessionWithSubjectInfo:
+    ) -> str:
         return await self.manage_role_in_session(obj, role, False)
 
 

@@ -43,7 +43,7 @@ async def create_session(info: SessionCreate, request: Request) -> str:
 @router.post("/session/role")
 async def add_role(
     role: RoleEnum, link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
-) -> Session:
+) -> str:
     try:
         return await crud_subject_organization_link.add_role_to_session(link, role)
     except ValueError as e:
@@ -66,7 +66,7 @@ async def get_subjects_by_organization(
 @router.delete("/session/role")
 async def drop_role(
     role: RoleEnum, link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
-) -> Session:
+) -> str:
     try:
         return await crud_subject_organization_link.drop_role_from_session(link, role)
     except ValueError as e:
