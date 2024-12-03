@@ -20,6 +20,7 @@ class SubjectOrganizationLinkBase(SQLModel):
 
 
 class SubjectOrganizationLink(SubjectOrganizationLinkBase, table=True):
+    active: bool = Field(default=True)
     session: Session | None = Field(
         default=None,
         sa_column=Column(Session.to_sa_type(), nullable=True),
