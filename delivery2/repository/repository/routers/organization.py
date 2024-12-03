@@ -13,7 +13,7 @@ from repository.utils.encryption.loaders import load_public_key
 router = APIRouter(prefix="/organization", tags=["Organization"])
 
 
-@router.post("", response_model=OrganizationBase)
+@router.post("", response_model=OrganizationBase, description="rep_create_org")
 async def create_organization(
     organization_and_subject: OrganizationCreate,
     request: Request,
@@ -32,6 +32,6 @@ async def create_organization(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("")
+@router.get("", description="rep_list_orgs")
 async def list_organizations() -> list[Organization]:
     return await crud_organization.get_all()

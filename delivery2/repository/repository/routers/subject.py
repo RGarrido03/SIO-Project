@@ -15,7 +15,7 @@ from repository.utils.auth.authorization_handler import get_current_user
 router = APIRouter(prefix="/subject", tags=["Subject"])
 
 
-@router.post("")
+@router.post("", description="rep_add_subject")
 async def create_subject(
     subject: SubjectCreate,
     link: SubjectOrganizationLink = Security(get_current_user),
@@ -30,7 +30,7 @@ async def create_subject(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/session")
+@router.post("/session", description="rep_create_session")
 async def create_session(info: SessionCreate, request: Request) -> str:
     try:
         token, public_key = await crud_subject_organization_link.create_session(info)
@@ -40,7 +40,7 @@ async def create_session(info: SessionCreate, request: Request) -> str:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/session/role")
+@router.post("/session/role", description="rep_assume_role")
 async def add_role(
     role: RoleEnum, link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
 ) -> str:
@@ -50,7 +50,7 @@ async def add_role(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/session/role")
+@router.get("/session/role", description="rep_list_roles")
 async def list_session_roles(
     link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
 ) -> set[RoleEnum]:
@@ -59,7 +59,7 @@ async def list_session_roles(
     return link.session.roles
 
 
-@router.get("")
+@router.get("", description="rep_list_subjects")
 async def get_subjects_by_organization(
     link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
     username: str | None = None,
@@ -72,7 +72,7 @@ async def get_subjects_by_organization(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.delete("/session/role")
+@router.delete("/session/role", description="rep_drop_role")
 async def drop_role(
     role: RoleEnum, link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
 ) -> str:
@@ -82,7 +82,7 @@ async def drop_role(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.patch("/activation")
+@router.patch("/activation", description="rep_activate_subject, rep_suspend_subject")
 async def set_activation(
     username: str,
     active: bool,

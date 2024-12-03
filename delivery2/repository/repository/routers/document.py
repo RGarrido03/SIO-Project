@@ -1,10 +1,9 @@
 import base64
-import json
-import os
-from datetime import datetime
-from typing import Literal, Annotated
 import pathlib
-from fastapi import APIRouter, UploadFile, HTTPException, Form, File, Security
+from datetime import datetime
+from typing import Literal
+
+from fastapi import APIRouter, HTTPException, Security
 
 from repository.crud.document import crud_document
 from repository.models import SubjectOrganizationLink
@@ -16,12 +15,11 @@ from repository.models.document import (
 )
 from repository.models.permission import RoleEnum, DocumentPermission
 from repository.utils.auth.authorization_handler import get_current_user
-from repository.utils.encryption.encryptors import encrypt_symmetric
 
 router = APIRouter(prefix="/document", tags=["Document"])
 
 
-@router.post("")
+@router.post("", description="rep_add_doc")
 async def create_document(
     doc: DocumentCreateWithFile,
     link: SubjectOrganizationLink = Security(get_current_user),
@@ -49,7 +47,7 @@ async def create_document(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/{name}")
+@router.get("/{name}", description="rep_get_doc_metadata")
 async def get_document_metadata(
     name: str,
     link: SubjectOrganizationLink = Security(get_current_user),
@@ -60,7 +58,7 @@ async def get_document_metadata(
     return doc
 
 
-@router.get("/handle/{handle}")
+@router.get("/handle/{handle}", description="rep_get_file")
 async def get_document_by_handle(
     handle: str,
 ) -> str:
@@ -74,7 +72,7 @@ async def get_document_by_handle(
     return base64.encodebytes(file_content).decode()
 
 
-@router.get("", response_model=list[DocumentBase])
+@router.get("", response_model=list[DocumentBase], description="rep_list_docs")
 async def list_documents(
     username: str | None = None,
     date: datetime | None = None,
@@ -86,7 +84,7 @@ async def list_documents(
     )
 
 
-@router.patch("/{name}/acl/add")
+@router.patch("/{name}/acl/add", description="rep_acl_doc")
 async def update_document_acl(
     name: str,
     role: RoleEnum,
@@ -99,7 +97,7 @@ async def update_document_acl(
     return await crud_document.add_acl(doc, role, permission)
 
 
-@router.patch("/{name}/acl/remove")
+@router.patch("/{name}/acl/remove", description="rep_acl_doc")
 async def remove_document_acl(
     name: str,
     role: RoleEnum,
@@ -112,7 +110,7 @@ async def remove_document_acl(
     return await crud_document.remove_acl(doc, role, permission)
 
 
-@router.delete("/{name}")
+@router.delete("/{name}", description="rep_delete_doc")
 async def delete_document(
     name: str,
     link: SubjectOrganizationLink = Security(get_current_user),
