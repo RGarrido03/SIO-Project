@@ -4,7 +4,6 @@ from typing import AsyncGenerator, Callable, Awaitable, Any
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from fastapi.responses import ORJSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from repository.config.database import init_db
@@ -15,6 +14,7 @@ from repository.utils.middleware import (
     decrypt_request_key,
     encrypt_response,
 )
+from repository.utils.serializers import CustomORJSONResponse
 
 
 @asynccontextmanager
@@ -24,7 +24,7 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
 
 
 app = FastAPI(
-    default_response_class=ORJSONResponse,
+    default_response_class=CustomORJSONResponse,
     lifespan=lifespan,
     title="SIO Project - Repository",
     version="1.0.0",

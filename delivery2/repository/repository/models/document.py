@@ -9,7 +9,6 @@ from sqlmodel import SQLModel, Field, Relationship
 from repository.models.organization import Organization
 from repository.models.permission import DocumentPermission, RoleEnum
 from repository.models.subject import Subject
-from repository.utils.serializers import SerializableSet
 
 
 class DocumentBase(SQLModel):
@@ -18,7 +17,7 @@ class DocumentBase(SQLModel):
     file_handle: str | None
 
     # ACL
-    acl: dict[RoleEnum, SerializableSet[DocumentPermission]] = Field(
+    acl: dict[RoleEnum, set[DocumentPermission]] = Field(
         default={}, sa_column=Column(JSONB)
     )
 
