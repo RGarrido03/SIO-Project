@@ -82,6 +82,16 @@ class CRUDSubjectOrganizationLink(
             links: list[SubjectOrganizationLink] = list(result.all())
             return [SubjectActiveListing.model_validate(a.subject) for a in links]
 
+    async def set_active(
+        self, username: str, organization: str, active: bool
+    ) -> SubjectOrganizationLink | None:
+        link = await self.get((username, organization))
+        if link is None:
+            return None
+
+        link.active = active
+        return await self._add_to_db(link)
+
     async def manage_role_in_session(
         self, obj: SubjectOrganizationLink, role: RoleEnum, add: bool
     ) -> str:

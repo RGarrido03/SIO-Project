@@ -86,9 +86,14 @@ async def drop_role(
 async def set_activation(
     username: str,
     active: bool,
-    _: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
+    link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
 ) -> Subject:
-    result = await crud_subject.set_active(username, active)
+    result = await crud_subject_organization_link.set_active(
+        username, link.organization_name, active
+    )
     if result is None:
-        raise HTTPException(status_code=404, detail="Subject not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Subject not found or not linked to this organization",
+        )
     return result
