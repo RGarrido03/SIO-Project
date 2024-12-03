@@ -9,7 +9,6 @@ from jwt import InvalidTokenError
 from repository.config.settings import settings
 from repository.crud.subject import crud_subject
 from repository.crud.subject_organization_link import crud_subject_organization_link
-from repository.models.permission import permissions_map
 from repository.models.relations import SubjectOrganizationLink
 from repository.models.session import Session
 from repository.utils.exceptions import (
@@ -59,9 +58,11 @@ def check_permission(
 ) -> SubjectOrganizationLink:
     session = cast(Session, link.session)  # Session is never None in this context
 
-    permissions_in_session = {
-        perm for role in session.roles for perm in permissions_map.get(role, [])
-    }
+    permissions_in_session = set()
+    # TODO: Implement permissions
+    # permissions_in_session = {
+    #     perm for role in session.roles for perm in permissions_map.get(role, [])
+    # }
 
     if any(
         permission not in permissions_in_session

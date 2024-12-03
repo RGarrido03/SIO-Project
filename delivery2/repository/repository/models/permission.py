@@ -32,28 +32,8 @@ class RolePermission(Permission):
     ROLE_MOD = "role_mod"
 
 
-# TODO: Set permissions map, this is just a placeholder (delivery 2)
-permissions_map: dict[RoleEnum, list[Permission]] = {
-    RoleEnum.MANAGERS: [
-        DocumentPermission.DOC_ACL,
-        DocumentPermission.DOC_READ,
-        DocumentPermission.DOC_DELETE,
-        OrganizationPermission.ROLE_ACL,
-        OrganizationPermission.SUBJECT_NEW,
-        OrganizationPermission.SUBJECT_DOWN,
-        OrganizationPermission.SUBJECT_UP,
-        OrganizationPermission.DOC_NEW,
-        RolePermission.ROLE_NEW,
-        RolePermission.ROLE_DOWN,
-        RolePermission.ROLE_UP,
-        RolePermission.ROLE_MOD,
-    ],
-    RoleEnum.USER: [
-        DocumentPermission.DOC_READ,
-        OrganizationPermission.ROLE_ACL,
-        OrganizationPermission.SUBJECT_NEW,
-        OrganizationPermission.SUBJECT_DOWN,
-        OrganizationPermission.SUBJECT_UP,
-        OrganizationPermission.DOC_NEW,
-    ],
-}
+all_permissions = [
+    perm.name
+    for perm_group in [DocumentPermission, OrganizationPermission, RolePermission]
+    for perm in perm_group
+]

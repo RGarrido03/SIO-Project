@@ -1,7 +1,7 @@
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Column
+from sqlalchemy import Column, ARRAY, String
 from sqlmodel import SQLModel, Field, Relationship
 
 from repository.models.session import Session
@@ -16,6 +16,7 @@ class SubjectOrganizationLinkBase(SQLModel):
     subject_username: str = Field(foreign_key="subject.username", primary_key=True)
     organization_name: str = Field(foreign_key="organization.name", primary_key=True)
     public_key_id: uuid.UUID = Field(foreign_key="publickey.id")
+    role_ids: list[str] = Field(default=[], sa_column=Column(ARRAY(String)))
 
 
 class SubjectOrganizationLink(SubjectOrganizationLinkBase, table=True):
