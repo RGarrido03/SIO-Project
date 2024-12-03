@@ -45,6 +45,7 @@ def upgrade() -> None:
                     "ROLE_DOWN",
                     "ROLE_UP",
                     "ROLE_MOD",
+                    name="permission",
                 )
             ),
             nullable=True,
