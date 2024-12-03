@@ -34,7 +34,7 @@ class OrganizationRoleBase(SQLModel):
     role: str = Field(index=True, primary_key=True)
     active: bool = Field(default=True)
     permissions: list[Permission] = Field(
-        default=[], sa_column=Column(ARRAY(Enum(*all_permissions)))
+        default=[], sa_column=Column(ARRAY(Enum(*all_permissions, name="permission")))
     )
 
 
