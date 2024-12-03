@@ -1,15 +1,8 @@
 import uuid
 
 from pydantic import EmailStr
-from sqlalchemy import Column, Enum
-from sqlalchemy.dialects.postgresql import ARRAY
 from sqlmodel import Field, SQLModel, Relationship
 
-from repository.models.permission import (
-    RoleEnum,
-    RolePermission,
-    OrganizationPermission,
-)
 from repository.models.relations import SubjectOrganizationLink
 
 
@@ -27,7 +20,6 @@ class Subject(SubjectBase, table=True):
     organization_links: list[SubjectOrganizationLink] = Relationship(
         back_populates="subject"
     )
-    roles: list["SubjectRoleLink"] = Relationship(back_populates="subject")
 
 
 class SubjectCreate(SubjectBase):
@@ -57,22 +49,3 @@ class PublicKeyCreate(PublicKeyBase):
 class SubjectWithPublicKeyUUID(SQLModel):
     subject: Subject
     public_key: PublicKey
-
-
-class Role(SQLModel, table=True):
-    name: RoleEnum = Field(index=True, primary_key=True)
-    role_permissions: list[RolePermission] = Field(
-        sa_column=Column(ARRAY(Enum(RolePermission)))
-    )
-    organization_permissions: list[OrganizationPermission] = Field(
-        sa_column=Column(ARRAY(Enum(OrganizationPermission)))
-    )
-    subjects: list["SubjectRoleLink"] = Relationship(back_populates="role")
-
-
-class SubjectRoleLink(SQLModel, table=True):
-    subject_username: str = Field(foreign_key="subject.username", primary_key=True)
-    role_name: RoleEnum = Field(foreign_key="role.name", primary_key=True)
-
-    subject: Subject = Relationship(back_populates="roles")
-    role: Role = Relationship(back_populates="subjects")
