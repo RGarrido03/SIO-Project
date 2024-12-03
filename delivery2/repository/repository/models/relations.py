@@ -25,11 +25,11 @@ class SubjectOrganizationLink(SubjectOrganizationLinkBase, table=True):
     )
 
     # Relationships
-    subject: Subject = Relationship(
+    subject: "Subject" = Relationship(
         back_populates="organization_links", sa_relationship_kwargs={"lazy": "selectin"}
     )
-    organization: Organization = Relationship(back_populates="subject_links")
-    publickey: PublicKey = Relationship()
+    organization: "Organization" = Relationship(back_populates="subject_links")
+    publickey: "PublicKey" = Relationship()
 
 
 class SubjectOrganizationLinkCreate(SubjectOrganizationLinkBase):
