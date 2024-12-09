@@ -5,15 +5,14 @@ from datetime import datetime
 from hashlib import sha256
 from typing import Literal
 
-from fastapi import UploadFile
-from sqlalchemy.sql.operators import ge, le, eq, exists
+from sqlalchemy.sql.operators import ge, le, eq
 from sqlmodel import select
 from sqlmodel.sql._expression_select_cls import SelectOfScalar
 
 from repository.config.database import get_session
 from repository.crud.base import CRUDBase
 from repository.models.document import Document, DocumentCreate
-from repository.models.permission import RoleEnum, DocumentPermission
+from repository.models.permission import DocumentPermission
 
 
 class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
@@ -77,7 +76,7 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
             return list(result.all())
 
     async def add_acl(
-        self, document: Document, role: RoleEnum, permission: DocumentPermission
+        self, document: Document, role: str, permission: DocumentPermission
     ) -> Document:
         if role not in document.acl:
             document.acl[role] = set()
@@ -85,7 +84,7 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
         return await self._add_to_db(document)
 
     async def remove_acl(
-        self, document: Document, role: RoleEnum, permission: DocumentPermission
+        self, document: Document, role: str, permission: DocumentPermission
     ) -> Document:
         if role not in document.acl:
             return document

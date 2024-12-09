@@ -7,7 +7,7 @@ from sqlalchemy.orm import RelationshipProperty
 from sqlmodel import SQLModel, Field, Relationship
 
 from repository.models.organization import Organization
-from repository.models.permission import DocumentPermission, RoleEnum
+from repository.models.permission import DocumentPermission
 from repository.models.subject import Subject
 
 
@@ -17,9 +17,7 @@ class DocumentBase(SQLModel):
     file_handle: str | None
 
     # ACL
-    acl: dict[RoleEnum, set[DocumentPermission]] = Field(
-        default={}, sa_column=Column(JSONB)
-    )
+    acl: dict[str, set[DocumentPermission]] = Field(default={}, sa_column=Column(JSONB))
 
     # Relations
     organization_name: str = Field(foreign_key="organization.name")

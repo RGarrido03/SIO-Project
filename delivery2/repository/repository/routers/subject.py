@@ -5,7 +5,6 @@ from starlette.requests import Request
 
 from repository.crud.subject import crud_subject
 from repository.crud.subject_organization_link import crud_subject_organization_link
-from repository.models.permission import RoleEnum
 from repository.models.relations import (
     SubjectOrganizationLink,
     SubjectOrganizationLinkCreate,
@@ -49,7 +48,7 @@ async def create_session(info: SessionCreate, request: Request) -> str:
 
 @router.post("/session/role", description="rep_assume_role")
 async def add_role(
-    role: RoleEnum, link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
+    role: str, link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
 ) -> str:
     try:
         return await crud_subject_organization_link.add_role_to_session(link, role)
@@ -60,7 +59,7 @@ async def add_role(
 @router.get("/session/role", description="rep_list_roles")
 async def list_session_roles(
     link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
-) -> set[RoleEnum]:
+) -> set[str]:
     if link.session is None:
         raise HTTPException(status_code=404, detail="Session not found")
     return link.session.roles
@@ -81,7 +80,7 @@ async def get_subjects_by_organization(
 
 @router.delete("/session/role", description="rep_drop_role")
 async def drop_role(
-    role: RoleEnum, link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
+    role: str, link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
 ) -> str:
     try:
         return await crud_subject_organization_link.drop_role_from_session(link, role)

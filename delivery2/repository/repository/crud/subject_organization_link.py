@@ -8,7 +8,6 @@ from sqlmodel.sql._expression_select_cls import SelectOfScalar
 
 from repository.config.database import get_session
 from repository.crud.base import CRUDBase
-from repository.models.permission import RoleEnum
 from repository.models.relations import (
     SubjectOrganizationLink,
     SubjectOrganizationLinkCreate,
@@ -93,13 +92,13 @@ class CRUDSubjectOrganizationLink(
         return await self._add_to_db(link)
 
     async def manage_role_in_session(
-        self, obj: SubjectOrganizationLink, role: RoleEnum, add: bool
+        self, obj: SubjectOrganizationLink, role: str, add: bool
     ) -> str:
         if obj.session is None:
             raise ValueError("Session not found")
 
         if add:
-            if not any(a.role_name == role for a in obj.subject.roles):
+            if not any(a == role for a in obj.role_ids):
                 raise ValueError("Role not found in subject")
             obj.session.roles.add(role)
         else:
@@ -116,13 +115,11 @@ class CRUDSubjectOrganizationLink(
         )
         return token
 
-    async def add_role_to_session(
-        self, obj: SubjectOrganizationLink, role: RoleEnum
-    ) -> str:
+    async def add_role_to_session(self, obj: SubjectOrganizationLink, role: str) -> str:
         return await self.manage_role_in_session(obj, role, True)
 
     async def drop_role_from_session(
-        self, obj: SubjectOrganizationLink, role: RoleEnum
+        self, obj: SubjectOrganizationLink, role: str
     ) -> str:
         return await self.manage_role_in_session(obj, role, False)
 

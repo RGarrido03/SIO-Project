@@ -13,7 +13,7 @@ from repository.models.document import (
     DocumentBase,
     DocumentCreateWithFile,
 )
-from repository.models.permission import RoleEnum, DocumentPermission
+from repository.models.permission import DocumentPermission
 from repository.utils.auth.authorization_handler import get_current_user
 
 router = APIRouter(prefix="/document", tags=["Document"])
@@ -28,7 +28,7 @@ async def create_document(
         # TODO FIXME NEXT DEILVERY
         # acl_dict = json.loads(acl)
         # formatted_acl = {
-        #     RoleEnum(role): (
+        #     str(role): (
         #         {DocumentPermission(perm)}
         #         if isinstance(perm, str)
         #         else {DocumentPermission(p) for p in perm}
@@ -87,7 +87,7 @@ async def list_documents(
 @router.patch("/{name}/acl/add", description="rep_acl_doc")
 async def update_document_acl(
     name: str,
-    role: RoleEnum,
+    role: str,
     permission: DocumentPermission,
     link: SubjectOrganizationLink = Security(get_current_user),
 ) -> Document:
@@ -100,7 +100,7 @@ async def update_document_acl(
 @router.patch("/{name}/acl/remove", description="rep_acl_doc")
 async def remove_document_acl(
     name: str,
-    role: RoleEnum,
+    role: str,
     permission: DocumentPermission,
     link: SubjectOrganizationLink = Security(get_current_user),
 ) -> Document:

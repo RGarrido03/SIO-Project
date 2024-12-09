@@ -1,12 +1,6 @@
 from enum import Enum
 
 
-class RoleEnum(str, Enum):
-    # TODO: Add more
-    MANAGERS = "managers"
-    USER = "user"
-
-
 class Permission(str, Enum):
     pass
 
