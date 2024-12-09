@@ -13,6 +13,12 @@ class CRUDOrganizationRole(
     def __init__(self) -> None:
         super().__init__(OrganizationRole)
 
+    async def create(self, obj: OrganizationRoleBase) -> OrganizationRole:
+        existing = await self.get((obj.organization_name, obj.role))
+        if existing:
+            raise ValueError("Role already exists")
+        return await super().create(obj)
+
     async def get_roles_by_permission(
         self, organization_name: str, permission: Permission
     ) -> list[str]:
