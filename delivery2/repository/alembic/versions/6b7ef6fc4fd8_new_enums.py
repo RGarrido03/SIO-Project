@@ -26,7 +26,7 @@ def upgrade() -> None:
         "CREATE TYPE permission_new AS ENUM ('ROLE_ACL', 'SUBJECT_NEW', 'SUBJECT_DOWN', 'SUBJECT_UP', 'DOC_NEW', 'ROLE_NEW', 'ROLE_DOWN', 'ROLE_UP', 'ROLE_MOD');"
     )
     op.execute(
-        "ALTER TABLE organizationrole ALTER COLUMN permissions TYPE permission_new USING permissions::text::permission_new;"
+        "ALTER TABLE organizationrole ALTER COLUMN permissions TYPE permission_new[] USING permissions::text::permission_new[];"
     )
     op.execute("DROP TYPE public.permission;")
     op.execute("ALTER TYPE permission_new RENAME TO permission;")
