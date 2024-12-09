@@ -19,7 +19,7 @@ class CRUDOrganization(CRUDBase[Organization, OrganizationBase, str]):
         db_obj = Organization.model_validate(obj)
         db_obj = await self._add_to_db(db_obj)
 
-        crud_organization_role.create(
+        await crud_organization_role.create(
             OrganizationRoleBase(
                 organization_name=db_obj.name,
                 role="Managers",

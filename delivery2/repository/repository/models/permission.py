@@ -6,24 +6,24 @@ class Permission(str, Enum):
 
 
 class DocumentPermission(Permission):
-    DOC_ACL = "doc_acl"
-    DOC_READ = "doc_read"
-    DOC_DELETE = "doc_delete"
+    DOC_ACL = "DOC_ACL"
+    DOC_READ = "DOC_READ"
+    DOC_DELETE = "DOC_DELETE"
 
 
 class OrganizationPermission(Permission):
-    ROLE_ACL = "role_acl"
-    SUBJECT_NEW = "subject_new"
-    SUBJECT_DOWN = "subject_down"
-    SUBJECT_UP = "subject_up"
-    DOC_NEW = "doc_new"
+    ROLE_ACL = "ROLE_ACL"
+    SUBJECT_NEW = "SUBJECT_NEW"
+    SUBJECT_DOWN = "SUBJECT_DOWN"
+    SUBJECT_UP = "SUBJECT_UP"
+    DOC_NEW = "DOC_NEW"
 
 
 class RolePermission(Permission):
-    ROLE_NEW = "role_new"
-    ROLE_DOWN = "role_down"
-    ROLE_UP = "role_up"
-    ROLE_MOD = "role_mod"
+    ROLE_NEW = "ROLE_NEW"
+    ROLE_DOWN = "ROLE_DOWN"
+    ROLE_UP = "ROLE_UP"
+    ROLE_MOD = "ROLE_MOD"
 
 
 all_permissions = [
