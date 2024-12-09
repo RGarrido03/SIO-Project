@@ -39,12 +39,12 @@ async def get_current_user(
     subject = await crud_subject.get(username)
     if subject is None:
         raise credentials_exception
-    if not subject.active:
-        raise inactive_user_exception
 
     link = await crud_subject_organization_link.get((username, organization))
     if link is None:
         raise credentials_exception
+    if not link.active:
+        raise inactive_user_exception
     if link.session is None:
         raise no_session_exception
     if link.session.expires < datetime.now():
