@@ -3,11 +3,13 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Depends, Security
 from starlette.requests import Request
 
-from repository.crud.organization import crud_organization
 from repository.crud.subject import crud_subject
 from repository.crud.subject_organization_link import crud_subject_organization_link
 from repository.models.permission import RoleEnum
-from repository.models.relations import SubjectOrganizationLink
+from repository.models.relations import (
+    SubjectOrganizationLink,
+    SubjectOrganizationLinkCreate,
+)
 from repository.models.session import SessionCreate
 from repository.models.subject import SubjectCreate, Subject, SubjectActiveListing
 from repository.utils.auth.authorization_handler import get_current_user
@@ -22,8 +24,13 @@ async def create_subject(
 ) -> Subject:
     try:
         obj = await crud_subject.create(subject)
-        await crud_organization.add_subject(
-            link.organization_name, subject.username, obj.public_key.id
+        await crud_subject_organization_link.create(
+            SubjectOrganizationLinkCreate(
+                organization_name=link.organization.name,
+                subject_username=obj.username,
+                role_ids=[],
+                public_key_id=obj.public_key.id,
+            )
         )
         return obj.subject
     except ValueError as e:
