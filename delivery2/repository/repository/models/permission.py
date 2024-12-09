@@ -33,7 +33,7 @@ class RolePermission(Permission):
 
 
 all_permissions = [
-    perm.name
+    perm
     for perm_group in [DocumentPermission, OrganizationPermission, RolePermission]
     for perm in perm_group
 ]
