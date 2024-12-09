@@ -4,7 +4,7 @@ from sqlalchemy import Enum, Column
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlmodel import Field, SQLModel, Relationship
 
-from repository.models.permission import Permission, all_permissions
+from repository.models.permission import Permission
 from repository.models.relations import SubjectOrganizationLink
 from repository.models.subject import SubjectCreate
 
@@ -34,10 +34,7 @@ class OrganizationRoleBase(SQLModel):
     role: str = Field(index=True, primary_key=True)
     active: bool = Field(default=True)
     permissions: list[Permission] = Field(
-        default=[],
-        sa_column=Column(
-            ARRAY(Enum(*[a.name for a in all_permissions], name="permission"))
-        ),
+        default=[], sa_column=Column(ARRAY(Enum(Permission)))
     )
 
 
