@@ -1,5 +1,5 @@
 import uuid
-from typing import Generic, TypeVar, Type
+from typing import Type
 
 from sqlmodel import select, SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -7,7 +7,11 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from repository.config.database import get_session
 
 
-class CRUDBase[ModelType: SQLModel, CreateSchemaType: SQLModel, PrimaryKeyType: (int, str, uuid.UUID, tuple[str, str])]:
+class CRUDBase[
+    ModelType: SQLModel,
+    CreateSchemaType: SQLModel,
+    PrimaryKeyType: (int, str, uuid.UUID, tuple[str, str]),
+]:
     def __init__(
         self,
         model: Type[ModelType],

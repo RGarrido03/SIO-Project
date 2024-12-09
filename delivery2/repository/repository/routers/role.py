@@ -45,3 +45,17 @@ async def list_roles_by_permission(
     return await crud_organization_role.get_roles_by_permission(
         link.organization_name, permission
     )
+
+
+@router.patch("/activation", description="rep_suspend_role, rep_reactivate_role")
+async def toggle_role_activation(
+    role: str,
+    active: bool,
+    link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
+) -> OrganizationRole:
+    try:
+        return await crud_organization_role.set_activation(
+            link.organization_name, role, active
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

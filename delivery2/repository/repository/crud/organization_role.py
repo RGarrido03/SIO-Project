@@ -31,5 +31,14 @@ class CRUDOrganizationRole(
             data: list[OrganizationRole] = list(result.all())
             return [role.role for role in data]
 
+    async def set_activation(
+        self, organization_name: str, role: str, active: bool
+    ) -> OrganizationRole:
+        role_obj = await self.get((organization_name, role))
+        if role_obj is None:
+            raise ValueError("Role not found")
+        role_obj.active = active
+        return await self._add_to_db(role_obj)
+
 
 crud_organization_role = CRUDOrganizationRole()
