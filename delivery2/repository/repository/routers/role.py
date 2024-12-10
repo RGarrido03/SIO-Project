@@ -27,19 +27,6 @@ async def add_role(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/activation", description="rep_reactivate_role")
-async def activate_role(
-    role: str,
-    link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
-) -> OrganizationRole:
-    try:
-        return await crud_organization_role.set_activation(
-            link.organization_name, role, True
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
 @router.post("/permission", description="rep_add_permission")
 async def add_permission_to_role(
     role: str,
@@ -74,14 +61,15 @@ async def list_role_permissions(
     return role_obj.permissions
 
 
-@router.delete("/activation", description="rep_suspend_role")
-async def suspend_role(
+@router.patch("/activation", description="rep_suspend_role, rep_reactivate_role")
+async def manage_role_activation(
     role: str,
+    active: bool,
     link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
 ) -> OrganizationRole:
     try:
         return await crud_organization_role.set_activation(
-            link.organization_name, role, False
+            link.organization_name, role, active
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
