@@ -16,7 +16,7 @@ class SubjectOrganizationLinkBase(SQLModel):
     subject_username: str = Field(foreign_key="subject.username", primary_key=True)
     organization_name: str = Field(foreign_key="organization.name", primary_key=True)
     public_key_id: uuid.UUID = Field(foreign_key="publickey.id")
-    role_ids: list[str] = Field(default=[], sa_column=Column(ARRAY(String)))
+    role_ids: set[str] = Field(default_factory=set, sa_column=Column(ARRAY(String)))
 
 
 class SubjectOrganizationLink(SubjectOrganizationLinkBase, table=True):

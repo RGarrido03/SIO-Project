@@ -8,6 +8,7 @@ from sqlmodel.sql._expression_select_cls import SelectOfScalar
 
 from repository.config.database import get_session
 from repository.crud.base import CRUDBase
+from repository.crud.organization_role import crud_organization_role
 from repository.models.relations import (
     SubjectOrganizationLink,
     SubjectOrganizationLinkCreate,
@@ -58,7 +59,7 @@ class CRUDSubjectOrganizationLink(
             SessionWithSubjectInfo(
                 **rel.session.model_dump(),
                 username=info.username,
-                organization=info.organization
+                organization=info.organization,
             )
         )
 
@@ -110,7 +111,7 @@ class CRUDSubjectOrganizationLink(
             SessionWithSubjectInfo(
                 **obj.session.model_dump(),
                 username=obj.subject_username,
-                organization=obj.organization_name
+                organization=obj.organization_name,
             )
         )
         return token
@@ -122,6 +123,28 @@ class CRUDSubjectOrganizationLink(
         self, obj: SubjectOrganizationLink, role: str
     ) -> str:
         return await self.manage_role_in_session(obj, role, False)
+
+    async def manage_subject_role(
+        self, organization: str, username: str, role: str, action: str
+    ) -> SubjectOrganizationLink:
+        role_link = await crud_organization_role.get((organization, role))
+        if role_link is None:
+            raise ValueError("Role not found")
+
+        link = await self.get((username, organization))
+        if link is None:
+            raise ValueError("Subject not found")
+
+        r_set = set(link.role_ids)
+
+        match action:
+            case "add":
+                r_set.add(role)
+            case "remove":
+                r_set.discard(role)
+
+        link.role_ids = r_set
+        return await self._add_to_db(link)
 
 
 crud_subject_organization_link = CRUDSubjectOrganizationLink()

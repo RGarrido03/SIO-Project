@@ -27,11 +27,24 @@ async def create_subject(
             SubjectOrganizationLinkCreate(
                 organization_name=link.organization.name,
                 subject_username=obj.username,
-                role_ids=[],
                 public_key_id=obj.public_key.id,
             )
         )
         return obj.subject
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/role", description="rep_add_permission")
+async def add_role_to_subject(
+    role: str,
+    username: str,
+    link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
+) -> SubjectOrganizationLink:
+    try:
+        return await crud_subject_organization_link.manage_subject_role(
+            link.organization_name, username, role, "add"
+        )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -84,6 +97,20 @@ async def drop_role(
 ) -> str:
     try:
         return await crud_subject_organization_link.drop_role_from_session(link, role)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete("/role", description="rep_remove_permission")
+async def remove_role_from_subject(
+    role: str,
+    username: str,
+    link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
+) -> SubjectOrganizationLink:
+    try:
+        return await crud_subject_organization_link.manage_subject_role(
+            link.organization_name, username, role, "remove"
+        )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
