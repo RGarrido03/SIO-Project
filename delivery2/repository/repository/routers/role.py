@@ -68,6 +68,8 @@ async def manage_role_activation(
     link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
 ) -> OrganizationRole:
     try:
+        if not active and role == "Managers":
+            raise ValueError("Cannot suspend Managers role")
         return await crud_organization_role.set_activation(
             link.organization_name, role, active
         )

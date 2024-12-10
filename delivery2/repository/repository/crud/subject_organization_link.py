@@ -141,6 +141,7 @@ class CRUDSubjectOrganizationLink(
             case "add":
                 r_set.add(role)
             case "remove":
+                # TODO: The Managers role must have at any time an active subject
                 r_set.discard(role)
 
         link.role_ids = r_set
