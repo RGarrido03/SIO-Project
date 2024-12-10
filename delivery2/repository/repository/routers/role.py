@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -56,6 +56,21 @@ async def toggle_role_activation(
     try:
         return await crud_organization_role.set_activation(
             link.organization_name, role, active
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.patch("/permission", description="rep_add_permission, rep_remove_permission")
+async def toggle_role_permission(
+    role: str,
+    permission: Permission,
+    change: Literal["add", "remove"],
+    link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
+) -> OrganizationRole:
+    try:
+        return await crud_organization_role.set_permission(
+            link.organization_name, role, permission, change
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

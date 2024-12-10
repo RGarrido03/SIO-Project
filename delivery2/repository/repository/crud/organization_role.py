@@ -1,3 +1,5 @@
+from typing import Literal
+
 from sqlmodel import select
 
 from repository.config.database import get_session
@@ -38,6 +40,27 @@ class CRUDOrganizationRole(
         if role_obj is None:
             raise ValueError("Role not found")
         role_obj.active = active
+        return await self._add_to_db(role_obj)
+
+    async def set_permission(
+        self,
+        organization_name: str,
+        role: str,
+        permission: Permission,
+        change: Literal["add", "remove"],
+    ) -> OrganizationRole:
+        role_obj = await self.get((organization_name, role))
+        if role_obj is None:
+            raise ValueError("Role not found")
+        match change:
+            case "add":
+                p = set(role_obj.permissions)
+                p.add(permission)
+                role_obj.permissions = p
+            case "remove":
+                p = set(role_obj.permissions)
+                p.discard(permission)
+                role_obj.permissions = p
         return await self._add_to_db(role_obj)
 
 
