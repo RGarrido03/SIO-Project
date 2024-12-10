@@ -15,6 +15,8 @@ from repository.utils.auth.authorization_handler import get_current_user
 
 router = APIRouter(prefix="/subject", tags=["Subject"])
 
+# TODO: Fix session information is leaking (i.e., a user can see other users' session keys through responses)
+
 
 @router.post("", description="rep_add_subject")
 async def create_subject(
@@ -86,6 +88,18 @@ async def get_subjects_by_organization(
     try:
         return await crud_subject_organization_link.get_subjects_by_organization(
             link.organization_name, username
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/role", description="rep_list_subject_roles")
+async def list_subject_roles(
+    subject: str, link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
+) -> list[str]:
+    try:
+        return await crud_subject_organization_link.get_subject_roles(
+            link.organization_name, subject
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

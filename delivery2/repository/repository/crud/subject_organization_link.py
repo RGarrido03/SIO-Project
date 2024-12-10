@@ -169,5 +169,11 @@ class CRUDSubjectOrganizationLink(
                 for a in links
             ]
 
+    async def get_subject_roles(self, organization: str, subject: str) -> list[str]:
+        link = await self.get((subject, organization))
+        if link is None:
+            raise ValueError("Subject not found")
+        return list(link.role_ids)
+
 
 crud_subject_organization_link = CRUDSubjectOrganizationLink()
