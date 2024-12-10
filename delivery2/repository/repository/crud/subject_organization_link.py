@@ -80,7 +80,10 @@ class CRUDSubjectOrganizationLink(
 
             result = await session.exec(query)
             links: list[SubjectOrganizationLink] = list(result.all())
-            return [SubjectActiveListing.model_validate(a.subject) for a in links]
+            return [
+                SubjectActiveListing(**a.subject.model_dump(), active=a.active)
+                for a in links
+            ]
 
     async def set_active(
         self, username: str, organization: str, active: bool
@@ -146,6 +149,25 @@ class CRUDSubjectOrganizationLink(
 
         link.role_ids = r_set
         return await self._add_to_db(link)
+
+    async def get_subjects_by_role(
+        self, organization: str, role: str
+    ) -> list[SubjectActiveListing]:
+        role_obj = await crud_organization_role.get((organization, role))
+        if role_obj is None:
+            raise ValueError("Role not found")
+
+        async with get_session() as session:
+            result = await session.exec(
+                select(SubjectOrganizationLink)
+                .where(SubjectOrganizationLink.organization_name == organization)
+                .where(SubjectOrganizationLink.role_ids.contains({role}))
+            )
+            links: list[SubjectOrganizationLink] = list(result.all())
+            return [
+                SubjectActiveListing(**a.subject.model_dump(), active=a.active)
+                for a in links
+            ]
 
 
 crud_subject_organization_link = CRUDSubjectOrganizationLink()

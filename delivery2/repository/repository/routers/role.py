@@ -3,9 +3,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 
 from repository.crud.organization_role import crud_organization_role
+from repository.crud.subject_organization_link import crud_subject_organization_link
 from repository.models import SubjectOrganizationLink
 from repository.models.organization import OrganizationRoleBase, OrganizationRole
 from repository.models.permission import Permission
+from repository.models.subject import SubjectActiveListing
 from repository.utils.auth.authorization_handler import get_current_user
 
 router = APIRouter(prefix="/role", tags=["Role"])
@@ -65,6 +67,18 @@ async def list_role_permissions(
     if role_obj is None:
         raise HTTPException(status_code=404, detail="Role not found")
     return role_obj.permissions
+
+
+@router.get("/subject", description="rep_list_role_subjects")
+async def list_subjects_by_role(
+    role: str, link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
+) -> list[SubjectActiveListing]:
+    try:
+        return await crud_subject_organization_link.get_subjects_by_role(
+            link.organization_name, role
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.patch("/activation", description="rep_suspend_role, rep_reactivate_role")

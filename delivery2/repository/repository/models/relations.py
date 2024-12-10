@@ -1,7 +1,8 @@
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Column, ARRAY, String
+from sqlalchemy import Column, String
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlmodel import SQLModel, Field, Relationship
 
 from repository.models.session import Session
