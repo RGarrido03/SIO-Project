@@ -46,6 +46,12 @@ async def list_roles_by_permission(
     permission: Permission,
     link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
 ) -> list[str]:
+    """
+    TODO
+    As roles can be used in documents’ ACLs to associate subjects to permissions,
+    this command should also list the roles per document that have the given permission.
+    Note: permissions for documents are different from the other organization permissions.
+    """
     return await crud_organization_role.get_roles_by_permission(
         link.organization_name, permission
     )
