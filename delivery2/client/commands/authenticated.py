@@ -99,3 +99,69 @@ def list_documents(
             tablefmt="rounded_outline",
         )
     )
+
+"""Second delivery"""
+#rep_assume_role <session file> <role>
+@app.command("rep_assume_role")
+def assume_role(
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: PathWithCheck,
+):
+    pass
+
+
+#rep_drop_role <session file> <role>
+@app.command("rep_drop_role")
+def drop_role(
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: PathWithCheck,
+):
+    pass
+
+#rep_list_roles <session file> <role>
+@app.command("rep_list_roles")
+def list_roles(
+        repository_public_key: RepPublicKey,
+        repository_address: RepAddress,
+        session_file: PathWithCheck,
+):
+    pass
+
+#rep_list_role_subjects <session file> <role>
+@app.command("rep_list_role_subjects")
+def list_role_subjects(
+        repository_public_key: RepPublicKey,
+        repository_address: RepAddress,
+        session_file: PathWithCheck,
+):
+    pass
+
+#rep_list_subject_roles <session file> <username>
+@app.command("rep_list_roles")
+def assume_role(
+        repository_public_key: RepPublicKey,
+        repository_address: RepAddress,
+        session_file: PathWithCheck,
+):
+    pass
+
+
+#rep_list_role_permissions <session file> <role>
+@app.command("rep_list_role_permissions")
+def list_role_permissions(
+        repository_public_key: RepPublicKey,
+        repository_address: RepAddress,
+        session_file: PathWithCheck,
+):
+    pass
+
+#rep_list_permission_roles <session file> <permission>
+@app.command("rep_list_permission_roles")
+def list_permission_roles(
+        repository_public_key: RepPublicKey,
+        repository_address: RepAddress,
+        session_file: PathWithCheck,
+):
+    pass

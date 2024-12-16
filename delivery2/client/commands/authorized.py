@@ -218,3 +218,83 @@ def activate_subject(
     )
     body = json.loads(body)
     print_subject(body)
+
+"""Second delivery"""
+#rep_add_role <session file> <role>
+@app.command("rep_add_role")
+def add_role(
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: PathWithCheck,
+):
+    pass
+
+#rep_suspend_role <session file> <role>
+@app.command("rep_suspend_role")
+def suspend_role(
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: PathWithCheck,
+):
+    pass
+
+#rep_reactivate_role <session file> <role>
+@app.command("rep_reactivate_role")
+def reactivate_role(
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: PathWithCheck,
+):
+    pass
+
+# rep_add_permission <session file> <role> <username>
+@app.command("rep_add_permission")
+def add_username_permission(
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: PathWithCheck,
+    username: str,
+
+):
+    pass
+
+# rep_remove_permission <session file> <role> <username>
+@app.command("rep_remove_permission")
+def remove_username_permission(
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: PathWithCheck,
+    username: str,
+
+):
+    pass
+
+# rep_add_permission <session file> <role> <permission>
+@app.command("rep_add_permission")
+def add_permission(
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: PathWithCheck,
+):
+    pass
+
+# rep_remove_permission <session file> <role> <permission>
+@app.command("rep_remove_permission")
+def remove_permission(
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: PathWithCheck,
+):
+    pass
+
+#rep_acl_doc <session file> <document name> [+/-] <role> <permission>
+@app.command("rep_acl_doc")
+def change_acl_permissions(
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: PathWithCheck,
+    doc_name: str,
+
+):
+    pass
+
