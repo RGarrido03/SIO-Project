@@ -264,7 +264,7 @@ def remove_username_permission(
     repository_public_key: RepPublicKey,
     repository_address: RepAddress,
     session_file: PathWithCheck,
-    username: str,
+    username: str
 
 ):
     pass
@@ -294,7 +294,6 @@ def change_acl_permissions(
     repository_address: RepAddress,
     session_file: PathWithCheck,
     doc_name: str,
-
 ):
     pass
 
