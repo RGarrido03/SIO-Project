@@ -144,6 +144,7 @@ def assume_role(
         repository_public_key: RepPublicKey,
         repository_address: RepAddress,
         session_file: PathWithCheck,
+        username: str
 ):
     pass
 
