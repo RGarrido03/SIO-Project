@@ -4,7 +4,7 @@ from typing import Annotated
 import typer
 from tabulate import tabulate
 
-from utils.consts import DOCUMENT_URL, SUBJECT_URL
+from utils.consts import DOCUMENT_URL, SUBJECT_URL, ROLE_URL
 from utils.permission import Permission
 from utils.request import request_session
 from utils.types import RepPublicKey, RepAddress, PathWithCheck
@@ -187,7 +187,31 @@ def list_role_subjects(
     session_file: PathWithCheck,
     role: str,
 ):
-    pass
+    body, _ = request_session(
+        "GET",
+        f"{repository_address}{ROLE_URL}/subject",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+        params={"role": role},
+    )
+
+    body = json.loads(body)
+
+    headers = {
+        "username": "Username",
+        "full_name": "Name",
+        "active": "Active",
+    }
+    body = [{key: doc.get(key) for key in headers.keys()} for doc in body]
+
+    print(
+        tabulate(
+            body,
+            headers=headers,
+            tablefmt="rounded_outline",
+        )
+    )
 
 
 # rep_list_subject_roles <session file> <username>
@@ -198,7 +222,23 @@ def assume_role(
     session_file: PathWithCheck,
     username: str,
 ):
-    pass
+    body, _ = request_session(
+        "GET",
+        f"{repository_address}{SUBJECT_URL}/role",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+        params={"subject": username},
+    )
+
+    body = json.loads(body)
+    print(
+        tabulate(
+            [[role] for role in body] if len(body) > 0 else [["No roles assigned."]],
+            headers=["Roles"],
+            tablefmt="rounded_outline",
+        )
+    )
 
 
 # rep_list_role_permissions <session file> <role>
