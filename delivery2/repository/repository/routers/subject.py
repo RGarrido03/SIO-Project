@@ -25,7 +25,9 @@ router = APIRouter(prefix="/subject", tags=["Subject"])
 @router.post("", description="rep_add_subject")
 async def create_subject(
     subject: SubjectCreate,
-    link: SubjectOrganizationLink = Security(get_current_user),
+    link: SubjectOrganizationLink = Security(
+        check_permission, scopes=[Permission.SUBJECT_NEW]
+    ),
 ) -> Subject:
     try:
         obj = await crud_subject.create(subject)
@@ -45,7 +47,10 @@ async def create_subject(
 async def add_role_to_subject(
     role: str,
     username: str,
-    link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
+    link: Annotated[
+        SubjectOrganizationLink,
+        Security(check_permission, scopes=[Permission.ROLE_MOD]),
+    ],
 ) -> SubjectOrganizationLink:
     try:
         return await crud_subject_organization_link.manage_subject_role(

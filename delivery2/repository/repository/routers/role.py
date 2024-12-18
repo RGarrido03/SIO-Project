@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Security
 
 from repository.crud.organization_role import crud_organization_role
 from repository.crud.subject_organization_link import crud_subject_organization_link
@@ -8,7 +8,10 @@ from repository.models import SubjectOrganizationLink
 from repository.models.organization import OrganizationRoleBase, OrganizationRole
 from repository.models.permission import Permission
 from repository.models.subject import SubjectActiveListing
-from repository.utils.auth.authorization_handler import get_current_user
+from repository.utils.auth.authorization_handler import (
+    get_current_user,
+    check_permission,
+)
 
 router = APIRouter(prefix="/role", tags=["Role"])
 
@@ -16,7 +19,10 @@ router = APIRouter(prefix="/role", tags=["Role"])
 @router.post("", description="rep_add_role")
 async def add_role(
     role: str,
-    link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
+    link: Annotated[
+        SubjectOrganizationLink,
+        Security(check_permission, scopes=[Permission.ROLE_NEW]),
+    ],
 ) -> OrganizationRole:
     try:
         return await crud_organization_role.create(
@@ -33,7 +39,10 @@ async def add_role(
 async def add_permission_to_role(
     role: str,
     permission: Permission,
-    link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
+    link: Annotated[
+        SubjectOrganizationLink,
+        Security(check_permission, scopes=[Permission.ROLE_MOD]),
+    ],
 ) -> OrganizationRole:
     try:
         return await crud_organization_role.set_permission(
@@ -84,7 +93,9 @@ async def list_subjects_by_role(
 @router.patch("/activation/activate", description="rep_reactivate_role")
 async def activate_role(
     role: str,
-    link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
+    link: Annotated[
+        SubjectOrganizationLink, Security(check_permission, scopes=[Permission.ROLE_UP])
+    ],
 ) -> OrganizationRole:
     try:
         return await crud_organization_role.set_activation(
@@ -97,7 +108,10 @@ async def activate_role(
 @router.patch("/activation/suspend", description="rep_suspend_role")
 async def suspend_role(
     role: str,
-    link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
+    link: Annotated[
+        SubjectOrganizationLink,
+        Security(check_permission, scopes=[Permission.ROLE_DOWN]),
+    ],
 ) -> OrganizationRole:
     try:
         if role == "Managers":

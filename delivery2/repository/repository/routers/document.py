@@ -13,8 +13,12 @@ from repository.models.document import (
     DocumentBase,
     DocumentCreateWithFile,
 )
-from repository.models.permission import DocumentPermission
-from repository.utils.auth.authorization_handler import get_current_user
+from repository.models.permission import DocumentPermission, Permission
+from repository.utils.auth.authorization_handler import (
+    get_current_user,
+    check_permission,
+    check_doc_permission,
+)
 
 router = APIRouter(prefix="/document", tags=["Document"])
 
@@ -22,7 +26,9 @@ router = APIRouter(prefix="/document", tags=["Document"])
 @router.post("", description="rep_add_doc")
 async def create_document(
     doc: DocumentCreateWithFile,
-    link: SubjectOrganizationLink = Security(get_current_user),
+    link: SubjectOrganizationLink = Security(
+        check_permission, scopes=[Permission.DOC_NEW]
+    ),
 ) -> Document:
     try:
         # TODO FIXME NEXT DEILVERY
@@ -55,6 +61,8 @@ async def get_document_metadata(
     doc = await crud_document.get_by_name_and_organization(name, link.organization_name)
     if doc is None:
         raise HTTPException(status_code=404, detail="Document not found")
+
+    check_doc_permission(DocumentPermission.DOC_READ, doc.acl, link.role_ids)
     return doc
 
 
@@ -84,29 +92,21 @@ async def list_documents(
     )
 
 
-@router.patch("/{name}/acl/add", description="rep_acl_doc")
+@router.patch("/{name}/acl", description="rep_acl_doc")
 async def update_document_acl(
     name: str,
     role: str,
+    add: bool,
     permission: DocumentPermission,
     link: SubjectOrganizationLink = Security(get_current_user),
 ) -> Document:
     doc = await crud_document.get_by_name_and_organization(name, link.organization_name)
     if doc is None:
         raise HTTPException(status_code=404, detail="Document not found")
-    return await crud_document.add_acl(doc, role, permission)
 
-
-@router.patch("/{name}/acl/remove", description="rep_acl_doc")
-async def remove_document_acl(
-    name: str,
-    role: str,
-    permission: DocumentPermission,
-    link: SubjectOrganizationLink = Security(get_current_user),
-) -> Document:
-    doc = await crud_document.get_by_name_and_organization(name, link.organization_name)
-    if doc is None:
-        raise HTTPException(status_code=404, detail="Document not found")
+    check_doc_permission(DocumentPermission.DOC_ACL, doc.acl, link.role_ids)
+    if add:
+        return await crud_document.add_acl(doc, role, permission)
     return await crud_document.remove_acl(doc, role, permission)
 
 
@@ -118,6 +118,7 @@ async def delete_document(
     doc = await crud_document.get_by_name_and_organization(name, link.organization_name)
     if doc is None:
         raise HTTPException(status_code=404, detail="Document not found")
+
+    check_doc_permission(DocumentPermission.DOC_DELETE, doc.acl, link.role_ids)
     await crud_document.delete(doc.document_handle, link.subject.username)
-    # TODO: Set deleter username
     return doc.file_handle or ""

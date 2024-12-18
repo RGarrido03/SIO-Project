@@ -13,6 +13,7 @@ from repository.config.settings import settings
 from repository.crud.subject import crud_subject
 from repository.crud.subject_organization_link import crud_subject_organization_link
 from repository.models import OrganizationRole
+from repository.models.permission import DocumentPermission
 from repository.models.relations import SubjectOrganizationLink
 from repository.models.session import Session
 from repository.utils.exceptions import (
@@ -77,3 +78,15 @@ async def check_permission(
         raise not_enough_permissions_exception
 
     return link
+
+
+def check_doc_permission(
+    permission: DocumentPermission,
+    acl: dict[str, set[DocumentPermission]],
+    roles: set[str],
+) -> None:
+    permissions = set(
+        [p for role, p_set in acl.items() for p in p_set if role in roles]
+    )
+    if permission not in permissions:
+        raise not_enough_permissions_exception
