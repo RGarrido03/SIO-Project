@@ -157,7 +157,7 @@ async def activate_subject(
             status_code=404,
             detail="Subject not found or not linked to this organization",
         )
-    return result
+    return result.subject
 
 
 @router.patch("/activation/suspend", description="rep_suspend_subject")
@@ -176,4 +176,4 @@ async def suspend_subject(
             status_code=404,
             detail="Subject not found or not linked to this organization",
         )
-    return result
+    return result.subject
