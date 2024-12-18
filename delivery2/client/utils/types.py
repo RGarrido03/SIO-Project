@@ -7,6 +7,7 @@ import typer
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 
 from utils.encryption.loaders import load_public_key
+from utils.permission import Permission
 
 
 class PublicKeyParser(click.ParamType):
@@ -23,8 +24,21 @@ class PublicKeyParser(click.ParamType):
         return load_public_key(p.read_text())
 
 
+class PermissionOrStrParser(click.ParamType):
+    name = "PERMISSION OR TEXT"
+
+    def convert(self, value, param, ctx):
+        try:
+            value = Permission[value.upper()]
+        except KeyError:
+            pass
+        return value
+
+
 def _validate_address(value: str) -> str:
-    if not re.match(r"^([a-zA-Z][a-zA-Z0-9.-]*|\d{1,3}(\.\d{1,3}){3}):(\d+)$", value):
+    if not re.match(
+        r"^([a-zA-Z][a-zA-Z0-9.-]*|\d{1,3}(\.\d{1,3}){3})(:(\d+))?$", value
+    ):
         print("Invalid address format (expected IP:port or domain:port)")
         raise typer.Exit(code=1)
     return "http://" + value
@@ -61,3 +75,5 @@ RepAddress = Annotated[
 ]
 
 PathWithCheck = Annotated[Path, typer.Argument(callback=_validate_path)]
+
+PermissionOrStr = Annotated[str, typer.Argument(click_type=PermissionOrStrParser())]
