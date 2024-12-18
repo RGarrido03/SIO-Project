@@ -19,8 +19,6 @@ from repository.utils.auth.authorization_handler import (
 
 router = APIRouter(prefix="/subject", tags=["Subject"])
 
-# TODO: Fix session information is leaking (i.e., a user can see other users' session keys through responses)
-
 
 @router.post("", description="rep_add_subject")
 async def create_subject(
@@ -51,11 +49,12 @@ async def add_role_to_subject(
         SubjectOrganizationLink,
         Security(check_permission, scopes=[Permission.ROLE_MOD]),
     ],
-) -> SubjectOrganizationLink:
+) -> set[str]:
     try:
-        return await crud_subject_organization_link.manage_subject_role(
+        new_link = await crud_subject_organization_link.manage_subject_role(
             link.organization_name, username, role, "add"
         )
+        return new_link.role_ids
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -129,11 +128,12 @@ async def remove_role_from_subject(
     role: str,
     username: str,
     link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
-) -> SubjectOrganizationLink:
+) -> set[str]:
     try:
-        return await crud_subject_organization_link.manage_subject_role(
+        new_link = await crud_subject_organization_link.manage_subject_role(
             link.organization_name, username, role, "remove"
         )
+        return new_link.role_ids
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
