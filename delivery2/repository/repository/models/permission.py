@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Permission(Enum):
+class Permission(str, Enum):
     ROLE_ACL = "ROLE_ACL"
     SUBJECT_NEW = "SUBJECT_NEW"
     SUBJECT_DOWN = "SUBJECT_DOWN"
@@ -13,7 +13,7 @@ class Permission(Enum):
     ROLE_MOD = "ROLE_MOD"
 
 
-class DocumentPermission(Enum):
+class DocumentPermission(str, Enum):
     DOC_ACL = "DOC_ACL"
     DOC_READ = "DOC_READ"
     DOC_DELETE = "DOC_DELETE"

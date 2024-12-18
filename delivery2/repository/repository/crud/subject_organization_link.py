@@ -108,6 +108,7 @@ class CRUDSubjectOrganizationLink(
         else:
             obj.session.roles.remove(role)
 
+        obj.session.roles = list(obj.session.roles)
         obj = await self._add_to_db(obj)
 
         token = create_token(

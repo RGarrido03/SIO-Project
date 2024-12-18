@@ -5,10 +5,14 @@ import jwt
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer, SecurityScopes
 from jwt import InvalidTokenError
+from sqlalchemy import func
+from sqlmodel import select
 
+from repository.config.database import get_session
 from repository.config.settings import settings
 from repository.crud.subject import crud_subject
 from repository.crud.subject_organization_link import crud_subject_organization_link
+from repository.models import OrganizationRole
 from repository.models.relations import SubjectOrganizationLink
 from repository.models.session import Session
 from repository.utils.exceptions import (
@@ -52,17 +56,19 @@ async def get_current_user(
     return link
 
 
-def check_permission(
+async def check_permission(
     security_scopes: SecurityScopes,
     link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
 ) -> SubjectOrganizationLink:
     session = cast(Session, link.session)  # Session is never None in this context
 
-    permissions_in_session = set()
-    # TODO: Implement permissions
-    # permissions_in_session = {
-    #     perm for role in session.roles for perm in permissions_map.get(role, [])
-    # }
+    async with get_session() as db_session:
+        permissions = await db_session.exec(
+            select(func.unnest(OrganizationRole.permissions))
+            .where(OrganizationRole.organization_name == link.organization_name)
+            .where(OrganizationRole.role.in_(session.roles))
+        )
+        permissions_in_session = set(permissions.all())
 
     if any(
         permission not in permissions_in_session
