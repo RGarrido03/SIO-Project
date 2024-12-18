@@ -81,17 +81,29 @@ async def list_subjects_by_role(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.patch("/activation", description="rep_suspend_role, rep_reactivate_role")
-async def manage_role_activation(
+@router.patch("/activation/activate", description="rep_reactivate_role")
+async def activate_role(
     role: str,
-    active: bool,
     link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
 ) -> OrganizationRole:
     try:
-        if not active and role == "Managers":
+        return await crud_organization_role.set_activation(
+            link.organization_name, role, True
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.patch("/activation/suspend", description="rep_suspend_role")
+async def suspend_role(
+    role: str,
+    link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
+) -> OrganizationRole:
+    try:
+        if role == "Managers":
             raise ValueError("Cannot suspend Managers role")
         return await crud_organization_role.set_activation(
-            link.organization_name, role, active
+            link.organization_name, role, False
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
