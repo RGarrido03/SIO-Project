@@ -50,12 +50,15 @@ async def encryption_middleware(
 ) -> Response:
     (request, token) = await decrypt_request_key(request)
     await decrypt_request_body(request, token)
-    response = await call_next(request)
+
+    try:
+        response = await call_next(request)
+    except ValueError as e:
+        response = CustomORJSONResponse(content={"detail": str(e)}, status_code=400)
 
     await encrypt_response(
         response, request.state, request.headers.get("Encryption") is not None
     )
-
     return response
 
 

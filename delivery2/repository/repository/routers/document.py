@@ -30,17 +30,13 @@ async def create_document(
         check_permission, scopes=[Permission.DOC_NEW]
     ),
 ) -> Document:
-    try:
-        doc.creator_username = link.subject_username
-        doc.organization_name = link.organization_name
-        doc.acl = {role: {DocumentPermission.DOC_ACL} for role in link.role_ids}
+    doc.creator_username = link.subject_username
+    doc.organization_name = link.organization_name
+    doc.acl = {role: {DocumentPermission.DOC_ACL} for role in link.role_ids}
 
-        return await crud_document.add_new(
-            DocumentCreate.model_validate(doc), doc.file_content
-        )
-
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await crud_document.add_new(
+        DocumentCreate.model_validate(doc), doc.file_content
+    )
 
 
 @router.get("/{name}", description="rep_get_doc_metadata")
@@ -95,12 +91,10 @@ async def update_document_acl(
         raise HTTPException(status_code=404, detail="Document not found")
 
     check_doc_permission(DocumentPermission.DOC_ACL, doc.acl, link.role_ids)
-    try:
-        if add:
-            return await crud_document.add_acl(doc, role, permission)
-        return await crud_document.remove_acl(doc, role, permission)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+
+    if add:
+        return await crud_document.add_acl(doc, role, permission)
+    return await crud_document.remove_acl(doc, role, permission)
 
 
 @router.delete("/{name}", description="rep_delete_doc")

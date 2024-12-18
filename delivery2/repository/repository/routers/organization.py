@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from starlette.requests import Request
 
 from repository.crud.organization import crud_organization
@@ -20,23 +20,20 @@ async def create_organization(
     organization_and_subject: OrganizationCreate,
     request: Request,
 ) -> Organization:
-    try:
-        subject = await crud_subject.create(organization_and_subject.subject)
-        organization = await crud_organization.create(
-            organization_and_subject.organization
+    subject = await crud_subject.create(organization_and_subject.subject)
+    organization = await crud_organization.create(
+        organization_and_subject.organization
+    )
+    await crud_subject_organization_link.create(
+        SubjectOrganizationLinkCreate(
+            organization_name=organization.name,
+            subject_username=subject.subject.username,
+            role_ids=["Managers"],
+            public_key_id=subject.public_key.id,
         )
-        await crud_subject_organization_link.create(
-            SubjectOrganizationLinkCreate(
-                organization_name=organization.name,
-                subject_username=subject.subject.username,
-                role_ids=["Managers"],
-                public_key_id=subject.public_key.id,
-            )
-        )
-        request.state.public_key = load_public_key(subject.public_key.key)
-        return organization
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    )
+    request.state.public_key = load_public_key(subject.public_key.key)
+    return organization
 
 
 @router.get("", description="rep_list_orgs")

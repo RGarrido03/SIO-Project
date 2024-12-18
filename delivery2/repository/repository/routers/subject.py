@@ -27,18 +27,15 @@ async def create_subject(
         check_permission, scopes=[Permission.SUBJECT_NEW]
     ),
 ) -> Subject:
-    try:
-        obj = await crud_subject.create(subject)
-        await crud_subject_organization_link.create(
-            SubjectOrganizationLinkCreate(
-                organization_name=link.organization_name,
-                subject_username=obj.subject.username,
-                public_key_id=obj.public_key.id,
-            )
+    obj = await crud_subject.create(subject)
+    await crud_subject_organization_link.create(
+        SubjectOrganizationLinkCreate(
+            organization_name=link.organization_name,
+            subject_username=obj.subject.username,
+            public_key_id=obj.public_key.id,
         )
-        return obj.subject
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    )
+    return obj.subject
 
 
 @router.post("/role", description="rep_add_permission")
@@ -50,33 +47,24 @@ async def add_role_to_subject(
         Security(check_permission, scopes=[Permission.ROLE_MOD]),
     ],
 ) -> set[str]:
-    try:
-        new_link = await crud_subject_organization_link.manage_subject_role(
-            link.organization_name, username, role, "add"
-        )
-        return new_link.role_ids
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    new_link = await crud_subject_organization_link.manage_subject_role(
+        link.organization_name, username, role, "add"
+    )
+    return new_link.role_ids
 
 
 @router.post("/session", description="rep_create_session")
 async def create_session(info: SessionCreate, request: Request) -> str:
-    try:
-        token, public_key = await crud_subject_organization_link.create_session(info)
-        request.state.public_key = public_key
-        return token
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    token, public_key = await crud_subject_organization_link.create_session(info)
+    request.state.public_key = public_key
+    return token
 
 
 @router.post("/session/role", description="rep_assume_role")
 async def add_role(
     role: str, link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
 ) -> str:
-    try:
-        return await crud_subject_organization_link.add_role_to_session(link, role)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await crud_subject_organization_link.add_role_to_session(link, role)
 
 
 @router.get("/session/role", description="rep_list_roles")
@@ -93,34 +81,25 @@ async def get_subjects_by_organization(
     link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
     username: str | None = None,
 ) -> list[SubjectActiveListing]:
-    try:
-        return await crud_subject_organization_link.get_subjects_by_organization(
-            link.organization_name, username
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await crud_subject_organization_link.get_subjects_by_organization(
+        link.organization_name, username
+    )
 
 
 @router.get("/role", description="rep_list_subject_roles")
 async def list_subject_roles(
     subject: str, link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
 ) -> list[str]:
-    try:
-        return await crud_subject_organization_link.get_subject_roles(
-            link.organization_name, subject
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await crud_subject_organization_link.get_subject_roles(
+        link.organization_name, subject
+    )
 
 
 @router.delete("/session/role", description="rep_drop_role")
 async def drop_role(
     role: str, link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
 ) -> str:
-    try:
-        return await crud_subject_organization_link.drop_role_from_session(link, role)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await crud_subject_organization_link.drop_role_from_session(link, role)
 
 
 @router.delete("/role", description="rep_remove_permission")
@@ -132,13 +111,10 @@ async def remove_role_from_subject(
         Security(check_permission, scopes=[Permission.ROLE_MOD]),
     ],
 ) -> set[str]:
-    try:
-        new_link = await crud_subject_organization_link.manage_subject_role(
-            link.organization_name, username, role, "remove"
-        )
-        return new_link.role_ids
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    new_link = await crud_subject_organization_link.manage_subject_role(
+        link.organization_name, username, role, "remove"
+    )
+    return new_link.role_ids
 
 
 @router.patch("/activation/activate", description="rep_activate_subject")

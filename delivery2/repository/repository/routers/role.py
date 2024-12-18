@@ -26,15 +26,12 @@ async def add_role(
         Security(check_permission, scopes=[Permission.ROLE_NEW]),
     ],
 ) -> OrganizationRole:
-    try:
-        return await crud_organization_role.create(
-            OrganizationRoleBase(
-                organization_name=link.organization_name,
-                role=role,
-            )
+    return await crud_organization_role.create(
+        OrganizationRoleBase(
+            organization_name=link.organization_name,
+            role=role,
         )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    )
 
 
 @router.post("/permission", description="rep_add_permission")
@@ -46,12 +43,9 @@ async def add_permission_to_role(
         Security(check_permission, scopes=[Permission.ROLE_MOD]),
     ],
 ) -> OrganizationRole:
-    try:
-        return await crud_organization_role.set_permission(
-            link.organization_name, role, permission, "add"
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await crud_organization_role.set_permission(
+        link.organization_name, role, permission, "add"
+    )
 
 
 @router.get("", description="rep_list_permission_roles")
@@ -83,12 +77,9 @@ async def list_role_permissions(
 async def list_subjects_by_role(
     role: str, link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
 ) -> list[SubjectActiveListing]:
-    try:
-        return await crud_subject_organization_link.get_subjects_by_role(
-            link.organization_name, role
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await crud_subject_organization_link.get_subjects_by_role(
+        link.organization_name, role
+    )
 
 
 @router.patch("/activation/activate", description="rep_reactivate_role")
@@ -98,12 +89,9 @@ async def activate_role(
         SubjectOrganizationLink, Security(check_permission, scopes=[Permission.ROLE_UP])
     ],
 ) -> OrganizationRole:
-    try:
-        return await crud_organization_role.set_activation(
-            link.organization_name, role, True
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await crud_organization_role.set_activation(
+        link.organization_name, role, True
+    )
 
 
 @router.patch("/activation/suspend", description="rep_suspend_role")
@@ -114,14 +102,11 @@ async def suspend_role(
         Security(check_permission, scopes=[Permission.ROLE_DOWN]),
     ],
 ) -> OrganizationRole:
-    try:
-        if role == "Managers":
-            raise ValueError("Cannot suspend Managers role")
-        return await crud_organization_role.set_activation(
-            link.organization_name, role, False
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    if role == "Managers":
+        raise ValueError("Cannot suspend Managers role")
+    return await crud_organization_role.set_activation(
+        link.organization_name, role, False
+    )
 
 
 @router.delete("/permission", description="rep_remove_permission")
@@ -133,9 +118,6 @@ async def remove_permission_from_role(
         Security(check_permission, scopes=[Permission.ROLE_MOD]),
     ],
 ) -> OrganizationRole:
-    try:
-        return await crud_organization_role.set_permission(
-            link.organization_name, role, permission, "remove"
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await crud_organization_role.set_permission(
+        link.organization_name, role, permission, "remove"
+    )
