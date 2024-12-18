@@ -7,10 +7,11 @@ from typing import Annotated
 
 import click
 import typer
+from tabulate import tabulate
 
 from commands.anonymous import get_file
 from commands.local import decrypt_file
-from utils.consts import DOCUMENT_URL, SUBJECT_URL
+from utils.consts import DOCUMENT_URL, SUBJECT_URL, ROLE_URL
 from utils.encryption.encryptors import encrypt_symmetric
 from utils.output import print_subject, print_doc_metadata
 from utils.permission import DocumentPermission, Permission
@@ -233,7 +234,27 @@ def add_role(
     session_file: PathWithCheck,
     role: str,
 ):
-    pass
+    body, _ = request_session(
+        "POST",
+        f"{repository_address}{ROLE_URL}",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+        params={"role": role},
+    )
+
+    body = json.loads(body)
+    print(f"Added role {role} to {body["organization_name"]}")
+
+    headers = {
+        "organization_name": "Organization",
+        "role": "Role",
+        "active": "Active",
+        "permissions": "Permissions",
+    }
+
+    body = [{key: body.get(key) for key in headers.keys()}]
+    print(tabulate(body, headers=headers, tablefmt="rounded_outline"))
 
 
 # rep_suspend_role <session file> <role>
@@ -244,7 +265,27 @@ def suspend_role(
     session_file: PathWithCheck,
     role: str,
 ):
-    pass
+    body, _ = request_session(
+        "PATCH",
+        f"{repository_address}{ROLE_URL}/activation/suspend",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+        params={"role": role},
+    )
+
+    body = json.loads(body)
+    print(f"Role {role} suspended in {body["organization_name"]}")
+
+    headers = {
+        "organization_name": "Organization",
+        "role": "Role",
+        "active": "Active",
+        "permissions": "Permissions",
+    }
+
+    body = [{key: body.get(key) for key in headers.keys()}]
+    print(tabulate(body, headers=headers, tablefmt="rounded_outline"))
 
 
 # rep_reactivate_role <session file> <role>
@@ -255,7 +296,27 @@ def reactivate_role(
     session_file: PathWithCheck,
     role: str,
 ):
-    pass
+    body, _ = request_session(
+        "PATCH",
+        f"{repository_address}{ROLE_URL}/activation/activate",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+        params={"role": role},
+    )
+
+    body = json.loads(body)
+    print(f"Role {role} activated in {body["organization_name"]}")
+
+    headers = {
+        "organization_name": "Organization",
+        "role": "Role",
+        "active": "Active",
+        "permissions": "Permissions",
+    }
+
+    body = [{key: body.get(key) for key in headers.keys()}]
+    print(tabulate(body, headers=headers, tablefmt="rounded_outline"))
 
 
 # rep_add_permission <session file> <role> <username | permission>
