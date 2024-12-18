@@ -145,7 +145,13 @@ class CRUDSubjectOrganizationLink(
             case "add":
                 r_set.add(role)
             case "remove":
-                # TODO: The Managers role must have at any time an active subject
+                if (
+                    role == "Managers"
+                    and len(await self.get_subjects_by_role(organization, role)) == 1
+                ):
+                    raise ValueError(
+                        "Managers role must have at least one active subject"
+                    )
                 r_set.discard(role)
 
         link.role_ids = r_set
