@@ -127,7 +127,10 @@ async def suspend_role(
 async def remove_permission_from_role(
     role: str,
     permission: Permission,
-    link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
+    link: Annotated[
+        SubjectOrganizationLink,
+        Security(check_permission, scopes=[Permission.ROLE_MOD]),
+    ],
 ) -> OrganizationRole:
     try:
         return await crud_organization_role.set_permission(

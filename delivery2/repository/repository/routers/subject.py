@@ -127,7 +127,10 @@ async def drop_role(
 async def remove_role_from_subject(
     role: str,
     username: str,
-    link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
+    link: Annotated[
+        SubjectOrganizationLink,
+        Security(check_permission, scopes=[Permission.ROLE_MOD]),
+    ],
 ) -> set[str]:
     try:
         new_link = await crud_subject_organization_link.manage_subject_role(
