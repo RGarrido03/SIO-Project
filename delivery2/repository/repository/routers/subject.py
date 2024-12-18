@@ -31,8 +31,8 @@ async def create_subject(
         obj = await crud_subject.create(subject)
         await crud_subject_organization_link.create(
             SubjectOrganizationLinkCreate(
-                organization_name=link.organization.name,
-                subject_username=obj.username,
+                organization_name=link.organization_name,
+                subject_username=obj.subject.username,
                 public_key_id=obj.public_key.id,
             )
         )
