@@ -5,13 +5,17 @@ from starlette.requests import Request
 
 from repository.crud.subject import crud_subject
 from repository.crud.subject_organization_link import crud_subject_organization_link
+from repository.models.permission import Permission
 from repository.models.relations import (
     SubjectOrganizationLink,
     SubjectOrganizationLinkCreate,
 )
 from repository.models.session import SessionCreate
 from repository.models.subject import SubjectCreate, Subject, SubjectActiveListing
-from repository.utils.auth.authorization_handler import get_current_user
+from repository.utils.auth.authorization_handler import (
+    get_current_user,
+    check_permission,
+)
 
 router = APIRouter(prefix="/subject", tags=["Subject"])
 
@@ -129,14 +133,35 @@ async def remove_role_from_subject(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.patch("/activation", description="rep_activate_subject, rep_suspend_subject")
-async def set_activation(
+@router.patch("/activation/activate", description="rep_activate_subject")
+async def activate_subject(
     username: str,
-    active: bool,
-    link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
+    link: Annotated[
+        SubjectOrganizationLink,
+        Security(check_permission, scopes=[Permission.SUBJECT_UP]),
+    ],
 ) -> Subject:
     result = await crud_subject_organization_link.set_active(
-        username, link.organization_name, active
+        username, link.organization_name, True
+    )
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Subject not found or not linked to this organization",
+        )
+    return result
+
+
+@router.patch("/activation/suspend", description="rep_suspend_subject")
+async def suspend_subject(
+    username: str,
+    link: Annotated[
+        SubjectOrganizationLink,
+        Security(check_permission, scopes=[Permission.SUBJECT_DOWN]),
+    ],
+) -> Subject:
+    result = await crud_subject_organization_link.set_active(
+        username, link.organization_name, False
     )
     if result is None:
         raise HTTPException(
