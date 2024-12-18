@@ -113,7 +113,20 @@ def assume_role(
     session_file: PathWithCheck,
     role: str,
 ):
-    pass
+    body, _ = request_session(
+        "POST",
+        f"{repository_address}{SUBJECT_URL}/session/role",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+        params={"role": role},
+    )
+
+    token = body.strip('"')
+    with session_file.open("w") as f:
+        f.write(token)
+
+    print(f"Added role {role} to session file {session_file}.")
 
 
 # rep_drop_role <session file> <role>
@@ -124,18 +137,46 @@ def drop_role(
     session_file: PathWithCheck,
     role: str,
 ):
-    pass
+    body, _ = request_session(
+        "DELETE",
+        f"{repository_address}{SUBJECT_URL}/session/role",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+        params={"role": role},
+    )
+
+    token = body.strip('"')
+    with session_file.open("w") as f:
+        f.write(token)
+
+    print(f"Removed role {role} to session file {session_file}.")
 
 
-# rep_list_roles <session file> <role>
+# rep_list_roles <session file>
 @app.command("rep_list_roles")
 def list_roles(
     repository_public_key: RepPublicKey,
     repository_address: RepAddress,
     session_file: PathWithCheck,
-    role: str,
 ):
-    pass
+    body, _ = request_session(
+        "GET",
+        f"{repository_address}{SUBJECT_URL}/session/role",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+    )
+
+    body = json.loads(body)
+
+    print(
+        tabulate(
+            [[role] for role in body] if len(body) > 0 else [["No roles assigned."]],
+            headers=["Roles"],
+            tablefmt="rounded_outline",
+        )
+    )
 
 
 # rep_list_role_subjects <session file> <role>
