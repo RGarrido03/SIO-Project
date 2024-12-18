@@ -78,7 +78,7 @@ async def list_documents(
     )
 
 
-@router.patch("/{name}/acl", description="rep_acl_doc")
+@router.patch("/{name}/acl", description="rep_acl_doc", response_model=DocumentBase)
 async def update_document_acl(
     name: str,
     role: str,
