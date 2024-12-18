@@ -93,6 +93,11 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
     ) -> Document:
         if role not in document.acl:
             return document
+        if (
+            permission == DocumentPermission.DOC_ACL
+            and sum(1 for roles in document.acl.values() if permission in roles) == 1
+        ):
+            raise ValueError("Cannot remove the last ACL permission from a role")
         document.acl[role].discard(permission)
         return await self._add_to_db(document)
 

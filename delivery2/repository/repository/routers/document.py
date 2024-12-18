@@ -6,7 +6,6 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException, Security
 
 from repository.crud.document import crud_document
-from repository.models import SubjectOrganizationLink
 from repository.models.document import (
     Document,
     DocumentCreate,
@@ -14,6 +13,7 @@ from repository.models.document import (
     DocumentCreateWithFile,
 )
 from repository.models.permission import DocumentPermission, Permission
+from repository.models.relations import SubjectOrganizationLink
 from repository.utils.auth.authorization_handler import (
     get_current_user,
     check_permission,
@@ -31,19 +31,9 @@ async def create_document(
     ),
 ) -> Document:
     try:
-        # TODO FIXME NEXT DEILVERY
-        # acl_dict = json.loads(acl)
-        # formatted_acl = {
-        #     str(role): (
-        #         {DocumentPermission(perm)}
-        #         if isinstance(perm, str)
-        #         else {DocumentPermission(p) for p in perm}
-        #     )
-        #     for role, perm in acl_dict.items()
-        # }
-
         doc.creator_username = link.subject_username
         doc.organization_name = link.organization_name
+        doc.acl = {role: {DocumentPermission.DOC_ACL} for role in link.role_ids}
 
         return await crud_document.add_new(
             DocumentCreate.model_validate(doc), doc.file_content
@@ -105,9 +95,12 @@ async def update_document_acl(
         raise HTTPException(status_code=404, detail="Document not found")
 
     check_doc_permission(DocumentPermission.DOC_ACL, doc.acl, link.role_ids)
-    if add:
-        return await crud_document.add_acl(doc, role, permission)
-    return await crud_document.remove_acl(doc, role, permission)
+    try:
+        if add:
+            return await crud_document.add_acl(doc, role, permission)
+        return await crud_document.remove_acl(doc, role, permission)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.delete("/{name}", description="rep_delete_doc")
