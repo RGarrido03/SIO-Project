@@ -21,9 +21,7 @@ async def create_organization(
     request: Request,
 ) -> Organization:
     subject = await crud_subject.create(organization_and_subject.subject)
-    organization = await crud_organization.create(
-        organization_and_subject.organization
-    )
+    organization = await crud_organization.create(organization_and_subject.organization)
     await crud_subject_organization_link.create(
         SubjectOrganizationLinkCreate(
             organization_name=organization.name,
