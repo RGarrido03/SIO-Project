@@ -249,7 +249,27 @@ def list_role_permissions(
     session_file: PathWithCheck,
     role: str,
 ):
-    pass
+    body, _ = request_session(
+        "GET",
+        f"{repository_address}{ROLE_URL}/permission",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+        params={"role": role},
+    )
+
+    body = json.loads(body)
+    print(
+        tabulate(
+            (
+                [[permission] for permission in body]
+                if len(body) > 0
+                else [["No permissions assigned."]]
+            ),
+            headers=["Permissions"],
+            tablefmt="rounded_outline",
+        )
+    )
 
 
 # rep_list_permission_roles <session file> <permission>
@@ -260,4 +280,20 @@ def list_permission_roles(
     session_file: PathWithCheck,
     permission: Annotated[Permission, typer.Argument(case_sensitive=False)],
 ):
-    pass
+    body, _ = request_session(
+        "GET",
+        f"{repository_address}{ROLE_URL}",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+        params={"permission": permission.name},
+    )
+
+    body = json.loads(body)
+    print(
+        tabulate(
+            ([[role] for role in body] if len(body) > 0 else [["No roles assigned."]]),
+            headers=["Roles"],
+            tablefmt="rounded_outline",
+        )
+    )
