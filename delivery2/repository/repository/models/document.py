@@ -59,3 +59,8 @@ class DocumentCreate(DocumentBaseWithPrivateMeta):
 
 class DocumentCreateWithFile(DocumentCreate):
     file_content: str
+
+
+class DocumentRolesByPermission(SQLModel):
+    name: str
+    roles: list[str]

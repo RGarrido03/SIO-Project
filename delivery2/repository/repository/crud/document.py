@@ -5,13 +5,18 @@ from datetime import datetime
 from hashlib import sha256
 from typing import Literal
 
+from sqlalchemy import func, literal_column, Grouping
 from sqlalchemy.sql.operators import ge, le, eq
 from sqlmodel import select
 from sqlmodel.sql._expression_select_cls import SelectOfScalar
 
 from repository.config.database import get_session
 from repository.crud.base import CRUDBase
-from repository.models.document import Document, DocumentCreate
+from repository.models.document import (
+    Document,
+    DocumentCreate,
+    DocumentRolesByPermission,
+)
 from repository.models.permission import DocumentPermission
 
 
@@ -100,6 +105,43 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
         document.deleter_username = username
         await self._add_to_db(document)
         return True
+
+    async def get_roles_by_permission(
+        self, organization_name: str, permission: DocumentPermission
+    ) -> list[DocumentRolesByPermission]:
+        async with get_session() as session:
+            jsonb_each = func.jsonb_each(Document.acl)
+
+            each_key = Grouping(
+                Grouping(jsonb_each).op(".")(literal_column("key"))
+            ).label("role")
+            each_value = Grouping(jsonb_each).op(".")(literal_column("value"))
+            value_set = Grouping(func.jsonb_array_elements_text(each_value)).label(
+                "permission"
+            )
+
+            subquery = (
+                select(Document.name.label("name"), each_key, value_set)  # type: ignore
+                .select_from(Document)
+                .where(Document.organization_name == organization_name)
+            )
+
+            query = (
+                select(
+                    subquery.c.name,
+                    func.array_agg(subquery.c.role).label("roles_with_permission"),
+                )
+                .select_from(subquery)
+                .where(subquery.c.permission == permission)
+                .group_by(subquery.c.name)
+            )
+
+            result = await session.exec(query)
+            result_list: list[tuple[str, list[str]]] = list(result.all())
+            return [
+                DocumentRolesByPermission(name=name, roles=roles)
+                for name, roles in result_list
+            ]
 
 
 crud_document = CRUDDocument()

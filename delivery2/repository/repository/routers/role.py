@@ -2,11 +2,13 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Security
 
+from repository.crud.document import crud_document
 from repository.crud.organization_role import crud_organization_role
 from repository.crud.subject_organization_link import crud_subject_organization_link
-from repository.models import SubjectOrganizationLink
+from repository.models.document import DocumentRolesByPermission
 from repository.models.organization import OrganizationRoleBase, OrganizationRole
-from repository.models.permission import Permission
+from repository.models.permission import Permission, DocumentPermission
+from repository.models.relations import SubjectOrganizationLink
 from repository.models.subject import SubjectActiveListing
 from repository.utils.auth.authorization_handler import (
     get_current_user,
@@ -54,15 +56,14 @@ async def add_permission_to_role(
 
 @router.get("", description="rep_list_permission_roles")
 async def list_roles_by_permission(
-    permission: Permission,
+    permission: Permission | DocumentPermission,
     link: Annotated[SubjectOrganizationLink, Depends(get_current_user)],
-) -> list[str]:
-    """
-    TODO
-    As roles can be used in documents’ ACLs to associate subjects to permissions,
-    this command should also list the roles per document that have the given permission.
-    Note: permissions for documents are different from the other organization permissions.
-    """
+) -> list[str] | list[DocumentRolesByPermission]:
+    if isinstance(permission, DocumentPermission):
+        return await crud_document.get_roles_by_permission(
+            link.organization_name, permission
+        )
+
     return await crud_organization_role.get_roles_by_permission(
         link.organization_name, permission
     )
@@ -71,7 +72,7 @@ async def list_roles_by_permission(
 @router.get("/permission", description="rep_list_role_permissions")
 async def list_role_permissions(
     role: str, link: Annotated[SubjectOrganizationLink, Depends(get_current_user)]
-) -> list[str]:
+) -> set[Permission]:
     role_obj = await crud_organization_role.get((link.organization_name, role))
     if role_obj is None:
         raise HTTPException(status_code=404, detail="Role not found")
