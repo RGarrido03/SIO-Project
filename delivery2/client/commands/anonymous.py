@@ -1,16 +1,16 @@
 import base64
+import json
 import sys
 from hashlib import sha512
 from pathlib import Path
 from typing import Annotated
 
-import requests
 import typer
 from tabulate import tabulate
 
 from utils.consts import ORGANIZATION_URL, SUBJECT_URL, DOCUMENT_URL, REPOSITORY_URL
 from utils.encryption.loaders import load_private_key
-from utils.request import request_without_session_repo
+from utils.request import request_without_session_repo, request_without_encryption
 from utils.storage import get_storage_dir
 from utils.types import RepPublicKey, RepAddress
 
@@ -57,8 +57,8 @@ def list_organizations(
     repository_public_key: RepPublicKey,
     repository_address: RepAddress,
 ):
-    response = requests.get(f"{repository_address}{ORGANIZATION_URL}")
-    body = response.json()
+    body, _ = request_without_encryption("GET", repository_address, ORGANIZATION_URL)
+    body = json.loads(body)
 
     headers = {
         "name": "Name",
@@ -130,13 +130,11 @@ def get_file(
     repository_address: RepAddress,
     file: Annotated[Path | None, typer.Argument()] = None,
 ):
-    response = requests.get(f"{repository_address}{DOCUMENT_URL}/handle/{file_handle}")
+    body, _ = request_without_encryption(
+        "GET", repository_address, f"{DOCUMENT_URL}/handle/{file_handle}"
+    )
 
-    if response.status_code == 404:
-        print("File not found")
-        raise typer.Exit(code=-1)
-
-    content = base64.decodebytes(response.content.replace(b"\\n", b"\n").strip(b'"'))
+    content = base64.decodebytes(body.encode().replace(b"\\n", b"\n").strip(b'"'))
 
     if file is None:
         sys.stdout.buffer.write(content)
@@ -155,23 +153,19 @@ def get_public_key(
     repository_address: RepAddress,
     file: Path,
 ):
-    response = requests.get(f"{repository_address}{REPOSITORY_URL}/public_key")
-    body = response.content
+    body, _ = request_without_encryption(
+        "GET", repository_address, f"{REPOSITORY_URL}/public_key"
+    )
 
     if not file.parent.exists():
         file.parent.mkdir(parents=True)
 
     with file.open("w+") as f:
-        f.write(body.replace(b"\\n", b"\n").strip(b'"').decode())
+        f.write(body.replace("\\n", "\n").strip('"'))
         print(f"Public key saved as {file}")
 
 
 @app.command("rep_ping")
 def ping(repository_address: RepAddress):
-    response = requests.get(f"{repository_address}{REPOSITORY_URL}/ping")
-
-    if response.status_code != 200:
-        print("Repository is not available")
-        raise typer.Exit(code=-1)
-
+    request_without_encryption("GET", repository_address, f"{REPOSITORY_URL}/ping")
     print("Repository is available")

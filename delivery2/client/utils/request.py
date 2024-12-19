@@ -15,6 +15,39 @@ from utils.encryption.encryptors import (
 )
 
 
+def request_without_encryption(
+    method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"],
+    repository_address: str,
+    url: str,
+    obj: dict[str, Any] | None = None,
+    content_type: str = "application/json",
+    params: dict[str, str] | None = None,
+) -> tuple[str, requests.Response]:
+
+    response = requests.request(
+        method,
+        repository_address + "/" + url,
+        json=obj,
+        headers={"Content-Type": content_type},
+        params=params,
+    )
+
+    body = response.content.decode()
+    body_dict = json.loads(body)
+    code = body_dict.get("code")
+    data = body_dict.get("data")
+
+    if code != 200 and code != 201:
+        try:
+            msg = json.loads(data)
+            print(msg["detail"])
+        except:
+            print(data)
+        raise typer.Exit(code=-1)
+
+    return data, response
+
+
 def request_without_session_repo(
     method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"],
     repository_address: str,
