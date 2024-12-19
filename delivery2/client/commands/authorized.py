@@ -319,6 +319,59 @@ def reactivate_role(
     print(tabulate(body, headers=headers, tablefmt="rounded_outline"))
 
 
+def manage_permission(
+    repository_public_key: RepPublicKey,
+    repository_address: RepAddress,
+    session_file: PathWithCheck,
+    role: str,
+    username_or_permission: PermissionOrStr,
+    add: bool,
+):
+    url = (
+        f"{repository_address}{ROLE_URL}/permission"
+        if isinstance(username_or_permission, Permission)
+        else f"{repository_address}{SUBJECT_URL}/role"
+    )
+    params = {
+        "role": role,
+        (
+            "permission"
+            if isinstance(username_or_permission, Permission)
+            else "username"
+        ): username_or_permission,
+    }
+
+    body, _ = request_session(
+        "POST" if add else "DELETE",
+        url,
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+        params=params,
+    )
+    body = json.loads(body)
+
+    if isinstance(username_or_permission, Permission):
+        headers = {
+            "organization_name": "Organization",
+            "role": "Role",
+            "active": "Active",
+            "permissions": "Permissions",
+        }
+
+        body = [{key: body.get(key) for key in headers.keys()}]
+        print(tabulate(body, headers=headers, tablefmt="rounded_outline"))
+        return
+
+    print(
+        tabulate(
+            [[role] for role in body] if len(body) > 0 else [["No roles assigned."]],
+            headers=["Roles"],
+            tablefmt="rounded_outline",
+        )
+    )
+
+
 # rep_add_permission <session file> <role> <username | permission>
 @app.command("rep_add_permission")
 def add_username_permission(
@@ -328,10 +381,14 @@ def add_username_permission(
     role: str,
     username_or_permission: PermissionOrStr,
 ):
-    if isinstance(username_or_permission, Permission):
-        # Different API endpoint
-        pass
-    pass
+    return manage_permission(
+        repository_public_key,
+        repository_address,
+        session_file,
+        role,
+        username_or_permission,
+        True,
+    )
 
 
 # rep_remove_permission <session file> <role> <username | permission>
@@ -343,10 +400,14 @@ def remove_username_permission(
     role: str,
     username_or_permission: PermissionOrStr,
 ):
-    if isinstance(username_or_permission, Permission):
-        # Different API endpoint
-        pass
-    pass
+    return manage_permission(
+        repository_public_key,
+        repository_address,
+        session_file,
+        role,
+        username_or_permission,
+        False,
+    )
 
 
 # rep_acl_doc <session file> <document name> [+/-] <role> <permission>
