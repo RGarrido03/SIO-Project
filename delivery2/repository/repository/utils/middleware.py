@@ -46,6 +46,30 @@ async def decrypt_request_key(request: Request) -> tuple[Request, bytes | None]:
     return request, payload.get("keys", [])[0].encode()
 
 
+async def decrypt_request_url(request: Request, token: bytes | None) -> None:
+    if token is None:
+        return
+
+    if (iv_header := request.headers.get("IV")) is None:
+        return
+
+    if request.headers.get("Encryption") is None:
+        return
+
+    iv = base64.decodebytes(iv_header.encode())
+
+    url = base64.decodebytes(
+        request.url.path.encode()
+        .replace(b"\\n", b"\n")
+        .replace(b"\\r", b"\r")
+        .lstrip(b"/")
+    )
+
+    url_unenc = decrypt_symmetric(url, token, iv).decode()
+    request._url = request._url.replace(path=url_unenc)
+    request.scope["path"] = "/" + url_unenc
+
+
 async def decrypt_request_body(request: Request, token: bytes | None) -> None:
     if token is None:
         return

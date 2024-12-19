@@ -13,6 +13,7 @@ from repository.utils.middleware import (
     decrypt_request_body,
     decrypt_request_key,
     encrypt_response,
+    decrypt_request_url,
 )
 from repository.utils.serializers import CustomORJSONResponse
 
@@ -49,6 +50,7 @@ async def encryption_middleware(
     call_next: Callable[[Request], Awaitable[Response]],
 ) -> Response:
     (request, token) = await decrypt_request_key(request)
+    await decrypt_request_url(request, token)
     await decrypt_request_body(request, token)
 
     try:
