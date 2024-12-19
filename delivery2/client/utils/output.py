@@ -24,7 +24,7 @@ def print_subject(body: dict[str, Any], include_email: bool = False) -> None:
     )
 
 
-def print_doc_metadata(body: dict[str, Any], include_encryption: bool = True) -> None:
+def print_doc_metadata(body: dict[str, Any], include_encryption: bool = False) -> None:
     headers_info = {
         "file_handle": "File handle",
         "name": "Name",

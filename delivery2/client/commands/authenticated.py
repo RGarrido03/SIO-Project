@@ -73,7 +73,7 @@ def list_documents(
         params=params,
     )
     body = json.loads(body)
-    print_doc_metadata(body, False)
+    print_doc_metadata(body)
 
 
 """Second delivery"""

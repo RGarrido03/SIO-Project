@@ -71,7 +71,7 @@ def add_document(
     )
 
     body = json.loads(body)
-    print_doc_metadata(body)
+    print_doc_metadata(body, include_encryption=True)
 
 
 # rep_get_doc_metadata <session file> <document name>
@@ -99,7 +99,7 @@ def get_document_metadata(
     f.write(json.dumps(body))
     f.close()
 
-    print_doc_metadata(body)
+    print_doc_metadata(body, include_encryption=True)
 
     return (
         body["file_handle"],
@@ -398,4 +398,4 @@ def change_acl_permissions(
     )
 
     body = json.loads(body)
-    print_doc_metadata(body, include_encryption=False)
+    print_doc_metadata(body)
