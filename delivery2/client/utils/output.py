@@ -21,7 +21,7 @@ def print_subject(body: dict[str, Any]) -> None:
     )
 
 
-def print_doc_metadata(body: dict[str, Any]) -> None:
+def print_doc_metadata(body: dict[str, Any], include_encryption: bool = True) -> None:
     headers_info = {
         "file_handle": "File handle",
         "name": "Name",
@@ -31,15 +31,7 @@ def print_doc_metadata(body: dict[str, Any]) -> None:
         "acl": "ACL",
     }
 
-    headers_enc = {
-        "alg": "Algorithm",
-        "key": "Key (base64)",
-        "iv": "IV (base64)",
-    }
-
     body_info = [{key: body.get(key) for key in headers_info.keys()}]
-    body_enc = [{key: body.get(key) for key in headers_enc.keys()}]
-
     print(
         tabulate(
             body_info,
@@ -47,6 +39,17 @@ def print_doc_metadata(body: dict[str, Any]) -> None:
             tablefmt="rounded_outline",
         )
     )
+
+    if not include_encryption:
+        return
+
+    headers_enc = {
+        "alg": "Algorithm",
+        "key": "Key (base64)",
+        "iv": "IV (base64)",
+    }
+
+    body_enc = [{key: body.get(key) for key in headers_enc.keys()}]
 
     print(
         tabulate(

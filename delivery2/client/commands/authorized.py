@@ -356,8 +356,22 @@ def change_acl_permissions(
     repository_address: RepAddress,
     session_file: PathWithCheck,
     doc_name: str,
-    choice: Annotated[str, typer.Option(click_type=click.Choice(["+", "-"]))],
+    choice: Annotated[str, typer.Argument(click_type=click.Choice(["+", "-"]))],
     role: str,
     permission: Annotated[DocumentPermission, typer.Argument(case_sensitive=False)],
 ):
-    pass
+    body, _ = request_session(
+        "PATCH",
+        f"{repository_address}{DOCUMENT_URL}/{doc_name}/acl",
+        None,
+        session_file.read_bytes(),
+        repository_public_key,
+        params={
+            "role": role,
+            "add": choice == "+",
+            "permission": permission.name,
+        },
+    )
+
+    body = json.loads(body)
+    print_doc_metadata(body, include_encryption=False)
