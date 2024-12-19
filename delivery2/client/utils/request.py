@@ -41,24 +41,29 @@ def request_without_session_repo(
         },
     )
 
-    if response.status_code != 200 and response.status_code != 201:
+    body = response.content.decode()
+
+    if "Authorization" in response.headers and private_key is not None:
+        res_iv = b64_decode_and_unescape(response.headers["IV"])
+        res_key = decrypt_asymmetric(
+            b64_decode_and_unescape(response.headers["Authorization"]),
+            private_key,
+        )
+        body = decrypt_symmetric(response.content, res_key, res_iv).decode()
+
+    body_dict = json.loads(body)
+    code = body_dict.get("code")
+    data = body_dict.get("data")
+
+    if code != 200 and code != 201:
         try:
-            msg = json.loads(response.content)
+            msg = json.loads(data)
             print(msg["detail"])
         except:
-            print(response.content)
+            print(data)
         raise typer.Exit(code=-1)
 
-    if "Authorization" not in response.headers or private_key is None:
-        return response.content.decode(), response
-
-    res_iv = b64_decode_and_unescape(response.headers["IV"])
-    res_key = decrypt_asymmetric(
-        b64_decode_and_unescape(response.headers["Authorization"]),
-        private_key,
-    )
-
-    return decrypt_symmetric(response.content, res_key, res_iv).decode(), response
+    return data, response
 
 
 def request_with_session(
@@ -112,8 +117,11 @@ def request_with_session(
         response.content, payload["keys"][0].encode(), res_iv
     ).decode()
 
-    if 400 <= response.status_code < 500:
-        print(dec_body)
+    body_dict = json.loads(dec_body)
+    data = body_dict.get("data")
+
+    if 400 <= body_dict["code"] < 500:
+        print(data)
         raise typer.Exit(code=-1)
 
-    return dec_body, response
+    return data, response
