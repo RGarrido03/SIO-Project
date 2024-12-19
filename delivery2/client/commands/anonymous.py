@@ -6,10 +6,10 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
-from tabulate import tabulate
 
 from utils.consts import ORGANIZATION_URL, SUBJECT_URL, DOCUMENT_URL, REPOSITORY_URL
 from utils.encryption.loaders import load_private_key
+from utils.output import print_organizations_list
 from utils.request import request_without_session_repo, request_without_encryption
 from utils.storage import get_storage_dir
 from utils.types import RepPublicKey, RepAddress
@@ -61,16 +61,8 @@ def list_organizations(
         "GET", repository_address, ORGANIZATION_URL, None, None, repository_public_key
     )
     body = json.loads(body)
-
-    headers = {"name": "Name"}
-
-    print(
-        tabulate(
-            body,
-            headers=headers,
-            tablefmt="rounded_outline",
-        )
-    )
+    body = [org["name"] for org in body]
+    print_organizations_list(body)
 
 
 @app.command("rep_create_session")

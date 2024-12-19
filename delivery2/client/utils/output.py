@@ -91,3 +91,7 @@ def print_roles_list(body: list[str]):
 
 def print_permissions_list(body: list[str]):
     _print_list(body, "Permissions", "No permissions assigned.")
+
+
+def print_organizations_list(body: list[str]):
+    _print_list(body, "Organizations", "No organizations available.")
