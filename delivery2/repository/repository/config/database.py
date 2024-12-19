@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from alembic import command, config
+from orjson import orjson
 from sqlalchemy import Connection
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.orm import sessionmaker
@@ -9,8 +10,19 @@ from sqlmodel import create_engine
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from repository.config.settings import settings
+from repository.utils.serializers import default
 
-engine = AsyncEngine(create_engine(settings.DATABASE_URI, future=True))
+engine = AsyncEngine(
+    create_engine(
+        settings.DATABASE_URI,
+        future=True,
+        json_serializer=lambda content: orjson.dumps(
+            content,
+            default=default,
+            option=orjson.OPT_NON_STR_KEYS | orjson.OPT_SERIALIZE_NUMPY,
+        ).decode(),
+    )
+)
 
 
 def run_upgrade(connection: Connection, cfg: config.Config) -> None:

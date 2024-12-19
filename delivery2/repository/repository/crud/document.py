@@ -40,12 +40,7 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
         with open(f"{path}/{document.file_handle}", "wb") as f:
             f.write(file_content)
 
-        document_mod = Document.model_validate(document)
-        document_mod.acl = dict(
-            {role: list(perm) for role, perm in document.acl.items()}
-        )
-        flag_modified(document_mod, "acl")
-        return await self._add_to_db(document_mod)
+        return await self.create(document)
 
     async def get_by_name_and_organization(
         self, name: str, organization_name: str
@@ -93,7 +88,7 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
             document.acl[role] = set()
         acl = set(document.acl[role])
         acl.add(permission)
-        document.acl[role] = list(acl)
+        document.acl[role] = acl
         flag_modified(document, "acl")
         return await self._add_to_db(document)
 
@@ -109,7 +104,7 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
             raise ValueError("Cannot remove the last ACL permission from a role")
         acl = set(document.acl[role])
         acl.discard(permission)
-        document.acl[role] = list(acl)
+        document.acl[role] = acl
         flag_modified(document, "acl")
         return await self._add_to_db(document)
 
