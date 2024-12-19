@@ -15,8 +15,9 @@ from utils.encryption.encryptors import (
 )
 
 
-def request_repository(
+def request_without_session_repo(
     method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"],
+    repository_address: str,
     url: str,
     obj: dict[str, Any],
     private_key: RSAPrivateKey | None,
@@ -28,7 +29,7 @@ def request_repository(
 
     response = requests.request(
         method,
-        url,
+        repository_address + url,
         data=req_data,
         params=params,
         headers={

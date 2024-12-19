@@ -10,7 +10,7 @@ from tabulate import tabulate
 
 from utils.consts import ORGANIZATION_URL, SUBJECT_URL, DOCUMENT_URL, REPOSITORY_URL
 from utils.encryption.loaders import load_private_key
-from utils.request import request_repository
+from utils.request import request_without_session_repo
 from utils.storage import get_storage_dir
 from utils.types import RepPublicKey, RepAddress
 
@@ -40,9 +40,10 @@ def create_organization(
         },
     }
 
-    body, _ = request_repository(
+    body, _ = request_without_session_repo(
         "POST",
-        f"{repository_address}{ORGANIZATION_URL}",
+        repository_address,
+        f"{ORGANIZATION_URL}",
         obj,
         None,
         repository_public_key,
@@ -93,9 +94,10 @@ def create_session(
         "credentials": base64.encodebytes(private_key_str).decode(),
     }
 
-    body, _ = request_repository(
+    body, _ = request_without_session_repo(
         "POST",
-        f"{repository_address}{SUBJECT_URL}/session",
+        repository_address,
+        f"{SUBJECT_URL}/session",
         obj,
         private_key,
         repository_public_key,
