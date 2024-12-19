@@ -70,3 +70,21 @@ def print_organization_role(body: dict[str, Any]) -> None:
 
     body = [{key: body.get(key) for key in headers.keys()}]
     print(tabulate(body, headers=headers, tablefmt="rounded_outline"))
+
+
+def _print_list(body: list[Any], header: str, default: str = "Not found") -> None:
+    print(
+        tabulate(
+            [[element] for element in body] if len(body) > 0 else [[default]],
+            headers=[header],
+            tablefmt="rounded_outline",
+        )
+    )
+
+
+def print_roles_list(body: list[str]):
+    _print_list(body, "Roles", "No roles assigned.")
+
+
+def print_permissions_list(body: list[str]):
+    _print_list(body, "Permissions", "No permissions assigned.")

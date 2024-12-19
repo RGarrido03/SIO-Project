@@ -7,13 +7,17 @@ from typing import Annotated
 
 import click
 import typer
-from tabulate import tabulate
 
 from commands.anonymous import get_file
 from commands.local import decrypt_file
 from utils.consts import DOCUMENT_URL, SUBJECT_URL, ROLE_URL
 from utils.encryption.encryptors import encrypt_symmetric
-from utils.output import print_subject, print_doc_metadata, print_organization_role
+from utils.output import (
+    print_subject,
+    print_doc_metadata,
+    print_organization_role,
+    print_roles_list,
+)
 from utils.permission import DocumentPermission, Permission
 from utils.request import request_session
 from utils.types import RepPublicKey, RepAddress, PathWithCheck, PermissionOrStr
@@ -328,13 +332,7 @@ def manage_permission(
         print_organization_role(body)
         return
 
-    print(
-        tabulate(
-            [[role] for role in body] if len(body) > 0 else [["No roles assigned."]],
-            headers=["Roles"],
-            tablefmt="rounded_outline",
-        )
-    )
+    print_roles_list(body)
 
 
 # rep_add_permission <session file> <role> <username | permission>

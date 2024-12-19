@@ -5,6 +5,7 @@ import typer
 from tabulate import tabulate
 
 from utils.consts import DOCUMENT_URL, SUBJECT_URL, ROLE_URL
+from utils.output import print_roles_list, print_permissions_list, print_doc_metadata
 from utils.permission import Permission
 from utils.request import request_session
 from utils.types import RepPublicKey, RepAddress, PathWithCheck
@@ -169,14 +170,7 @@ def list_roles(
     )
 
     body = json.loads(body)
-
-    print(
-        tabulate(
-            [[role] for role in body] if len(body) > 0 else [["No roles assigned."]],
-            headers=["Roles"],
-            tablefmt="rounded_outline",
-        )
-    )
+    print_roles_list(body)
 
 
 # rep_list_role_subjects <session file> <role>
@@ -232,13 +226,7 @@ def assume_role(
     )
 
     body = json.loads(body)
-    print(
-        tabulate(
-            [[role] for role in body] if len(body) > 0 else [["No roles assigned."]],
-            headers=["Roles"],
-            tablefmt="rounded_outline",
-        )
-    )
+    print_roles_list(body)
 
 
 # rep_list_role_permissions <session file> <role>
@@ -259,17 +247,7 @@ def list_role_permissions(
     )
 
     body = json.loads(body)
-    print(
-        tabulate(
-            (
-                [[permission] for permission in body]
-                if len(body) > 0
-                else [["No permissions assigned."]]
-            ),
-            headers=["Permissions"],
-            tablefmt="rounded_outline",
-        )
-    )
+    print_permissions_list(body)
 
 
 # rep_list_permission_roles <session file> <permission>
@@ -290,10 +268,4 @@ def list_permission_roles(
     )
 
     body = json.loads(body)
-    print(
-        tabulate(
-            ([[role] for role in body] if len(body) > 0 else [["No roles assigned."]]),
-            headers=["Roles"],
-            tablefmt="rounded_outline",
-        )
-    )
+    print_roles_list(body)
