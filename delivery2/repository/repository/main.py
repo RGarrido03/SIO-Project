@@ -1,5 +1,4 @@
 from contextlib import asynccontextmanager
-from pprint import pprint
 from typing import AsyncGenerator, Callable, Awaitable, Any
 
 from fastapi import FastAPI, Request, Response
@@ -15,6 +14,7 @@ from repository.utils.middleware import (
     decrypt_request_key,
     encrypt_response,
     decrypt_request_url,
+    obfuscate_response,
 )
 from repository.utils.serializers import CustomORJSONResponse
 
@@ -52,7 +52,6 @@ async def encryption_middleware(
 ) -> Response:
     (request, token) = await decrypt_request_key(request)
     await decrypt_request_url(request, token)
-    pprint(request.__dict__)
     await decrypt_request_body(request, token)
 
     try:
@@ -60,6 +59,7 @@ async def encryption_middleware(
     except ValueError as e:
         response = CustomORJSONResponse(content={"detail": str(e)}, status_code=400)
 
+    await obfuscate_response(response)
     await encrypt_response(
         response, request.state, request.headers.get("Encryption") is not None
     )

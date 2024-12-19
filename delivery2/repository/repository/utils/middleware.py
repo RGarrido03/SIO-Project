@@ -1,4 +1,5 @@
 import base64
+import json
 import os
 from typing import Any, AsyncIterable
 
@@ -107,6 +108,21 @@ async def _set_response_body(response: Response, body: bytes) -> None:
         response.body_iterator = new_body_iterator()
         return
     response.body = body
+
+
+async def obfuscate_response(response: Response) -> None:
+    body = await _get_response_body(response)
+
+    print("PIXA DEBUG", body.decode())
+
+    new_body = {
+        "code": response.status_code,
+        "data": body.decode(),
+    }
+    body_enc = json.dumps(new_body).encode()
+    await _set_response_body(response, body_enc)
+    response.status_code = 200
+    response.headers["Content-Length"] = str(len(body_enc))
 
 
 async def encrypt_response(
