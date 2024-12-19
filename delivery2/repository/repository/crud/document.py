@@ -6,6 +6,7 @@ from hashlib import sha256
 from typing import Literal
 
 from sqlalchemy import func, literal_column, Grouping
+from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.sql.operators import ge, le, eq
 from sqlmodel import select
 from sqlmodel.sql._expression_select_cls import SelectOfScalar
@@ -85,7 +86,10 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
     ) -> Document:
         if role not in document.acl:
             document.acl[role] = set()
-        document.acl[role].add(permission)
+        acl = set(document.acl[role])
+        acl.add(permission)
+        document.acl[role] = list(acl)
+        flag_modified(document, "acl")
         return await self._add_to_db(document)
 
     async def remove_acl(
@@ -98,7 +102,10 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
             and sum(1 for roles in document.acl.values() if permission in roles) == 1
         ):
             raise ValueError("Cannot remove the last ACL permission from a role")
-        document.acl[role].discard(permission)
+        acl = set(document.acl[role])
+        acl.discard(permission)
+        document.acl[role] = list(acl)
+        flag_modified(document, "acl")
         return await self._add_to_db(document)
 
     async def delete(self, document_handle: uuid.UUID, username: str) -> bool:
