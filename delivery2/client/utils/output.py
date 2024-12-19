@@ -3,7 +3,7 @@ from typing import Any
 from tabulate import tabulate
 
 
-def print_subject(body: dict[str, Any], include_email: bool = True) -> None:
+def print_subject(body: dict[str, Any], include_email: bool = False) -> None:
     headers = {
         "username": "Username",
         "full_name": "Name",

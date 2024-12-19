@@ -182,7 +182,7 @@ def add_subject(
         repository_public_key,
     )
     body = json.loads(body)
-    print_subject(body)
+    print_subject(body, include_email=True)
 
 
 # rep_suspend_subject <session file> <username>
@@ -203,7 +203,7 @@ def suspend_subject(
         params=params,
     )
     body = json.loads(body)
-    print_subject(body)
+    print_subject(body, include_email=True)
 
 
 # rep_activate_subject <session file> <username>
@@ -224,7 +224,7 @@ def activate_subject(
         params=params,
     )
     body = json.loads(body)
-    print_subject(body)
+    print_subject(body, include_email=True)
 
 
 """Second delivery"""
