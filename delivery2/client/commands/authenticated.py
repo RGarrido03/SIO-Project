@@ -2,10 +2,14 @@ import json
 from typing import Annotated
 
 import typer
-from tabulate import tabulate
 
 from utils.consts import DOCUMENT_URL, SUBJECT_URL, ROLE_URL
-from utils.output import print_roles_list, print_permissions_list, print_doc_metadata
+from utils.output import (
+    print_roles_list,
+    print_permissions_list,
+    print_doc_metadata,
+    print_subject,
+)
 from utils.permission import Permission
 from utils.request import request_session
 from utils.types import RepPublicKey, RepAddress, PathWithCheck
@@ -32,21 +36,7 @@ def list_subjects(
         params=params,
     )
     body = json.loads(body)
-
-    headers = {
-        "username": "Username",
-        "full_name": "Name",
-        "active": "Active",
-    }
-    body = [{key: doc.get(key) for key in headers.keys()} for doc in body]
-
-    print(
-        tabulate(
-            body,
-            headers=headers,
-            tablefmt="rounded_outline",
-        )
-    )
+    print_subject(body, False)
 
 
 @app.command("rep_list_docs")
@@ -83,24 +73,7 @@ def list_documents(
         params=params,
     )
     body = json.loads(body)
-
-    headers = {
-        "file_handle": "File handle",
-        "name": "Name",
-        "organization_name": "Organization",
-        "creator_username": "Creator",
-        "deleter_username": "Deleter",
-        "acl": "ACL",
-    }
-    body = [{key: doc.get(key) for key in headers.keys()} for doc in body]
-
-    print(
-        tabulate(
-            body,
-            headers=headers,
-            tablefmt="rounded_outline",
-        )
-    )
+    print_doc_metadata(body, False)
 
 
 """Second delivery"""
@@ -191,21 +164,7 @@ def list_role_subjects(
     )
 
     body = json.loads(body)
-
-    headers = {
-        "username": "Username",
-        "full_name": "Name",
-        "active": "Active",
-    }
-    body = [{key: doc.get(key) for key in headers.keys()} for doc in body]
-
-    print(
-        tabulate(
-            body,
-            headers=headers,
-            tablefmt="rounded_outline",
-        )
-    )
+    print_subject(body, False)
 
 
 # rep_list_subject_roles <session file> <username>

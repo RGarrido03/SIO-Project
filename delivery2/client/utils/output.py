@@ -3,13 +3,16 @@ from typing import Any
 from tabulate import tabulate
 
 
-def print_subject(body: dict[str, Any]) -> None:
+def print_subject(body: dict[str, Any], include_email: bool = True) -> None:
     headers = {
         "username": "Username",
         "full_name": "Name",
-        "email": "E-mail",
         "active": "Active",
     }
+
+    if include_email:
+        headers["email"] = "E-mail"
+
     body_mod = [{key: body.get(key) for key in headers.keys()}]
 
     print(
