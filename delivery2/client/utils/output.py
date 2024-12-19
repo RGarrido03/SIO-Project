@@ -58,3 +58,15 @@ def print_doc_metadata(body: dict[str, Any], include_encryption: bool = True) ->
             tablefmt="rounded_outline",
         )
     )
+
+
+def print_organization_role(body: dict[str, Any]) -> None:
+    headers = {
+        "organization_name": "Organization",
+        "role": "Role",
+        "active": "Active",
+        "permissions": "Permissions",
+    }
+
+    body = [{key: body.get(key) for key in headers.keys()}]
+    print(tabulate(body, headers=headers, tablefmt="rounded_outline"))

@@ -13,7 +13,7 @@ from commands.anonymous import get_file
 from commands.local import decrypt_file
 from utils.consts import DOCUMENT_URL, SUBJECT_URL, ROLE_URL
 from utils.encryption.encryptors import encrypt_symmetric
-from utils.output import print_subject, print_doc_metadata
+from utils.output import print_subject, print_doc_metadata, print_organization_role
 from utils.permission import DocumentPermission, Permission
 from utils.request import request_session
 from utils.types import RepPublicKey, RepAddress, PathWithCheck, PermissionOrStr
@@ -245,16 +245,7 @@ def add_role(
 
     body = json.loads(body)
     print(f"Added role {role} to {body["organization_name"]}")
-
-    headers = {
-        "organization_name": "Organization",
-        "role": "Role",
-        "active": "Active",
-        "permissions": "Permissions",
-    }
-
-    body = [{key: body.get(key) for key in headers.keys()}]
-    print(tabulate(body, headers=headers, tablefmt="rounded_outline"))
+    print_organization_role(body)
 
 
 # rep_suspend_role <session file> <role>
@@ -276,16 +267,7 @@ def suspend_role(
 
     body = json.loads(body)
     print(f"Role {role} suspended in {body["organization_name"]}")
-
-    headers = {
-        "organization_name": "Organization",
-        "role": "Role",
-        "active": "Active",
-        "permissions": "Permissions",
-    }
-
-    body = [{key: body.get(key) for key in headers.keys()}]
-    print(tabulate(body, headers=headers, tablefmt="rounded_outline"))
+    print_organization_role(body)
 
 
 # rep_reactivate_role <session file> <role>
@@ -307,16 +289,7 @@ def reactivate_role(
 
     body = json.loads(body)
     print(f"Role {role} activated in {body["organization_name"]}")
-
-    headers = {
-        "organization_name": "Organization",
-        "role": "Role",
-        "active": "Active",
-        "permissions": "Permissions",
-    }
-
-    body = [{key: body.get(key) for key in headers.keys()}]
-    print(tabulate(body, headers=headers, tablefmt="rounded_outline"))
+    print_organization_role(body)
 
 
 def manage_permission(
@@ -352,15 +325,7 @@ def manage_permission(
     body = json.loads(body)
 
     if isinstance(username_or_permission, Permission):
-        headers = {
-            "organization_name": "Organization",
-            "role": "Role",
-            "active": "Active",
-            "permissions": "Permissions",
-        }
-
-        body = [{key: body.get(key) for key in headers.keys()}]
-        print(tabulate(body, headers=headers, tablefmt="rounded_outline"))
+        print_organization_role(body)
         return
 
     print(
