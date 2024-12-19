@@ -57,12 +57,12 @@ def list_organizations(
     repository_public_key: RepPublicKey,
     repository_address: RepAddress,
 ):
-    body, _ = request_without_encryption("GET", repository_address, ORGANIZATION_URL)
+    body, _ = request_without_session_repo(
+        "GET", repository_address, ORGANIZATION_URL, None, None, repository_public_key
+    )
     body = json.loads(body)
 
-    headers = {
-        "name": "Name",
-    }
+    headers = {"name": "Name"}
 
     print(
         tabulate(
@@ -127,11 +127,17 @@ def create_session(
 @app.command("rep_get_file")
 def get_file(
     file_handle: str,
+    repository_public_key: RepPublicKey,
     repository_address: RepAddress,
     file: Annotated[Path | None, typer.Argument()] = None,
 ):
-    body, _ = request_without_encryption(
-        "GET", repository_address, f"{DOCUMENT_URL}/handle/{file_handle}"
+    body, _ = request_without_session_repo(
+        "GET",
+        repository_address,
+        f"{DOCUMENT_URL}/handle/{file_handle}",
+        None,
+        None,
+        repository_public_key,
     )
 
     content = base64.decodebytes(body.encode().replace(b"\\n", b"\n").strip(b'"'))

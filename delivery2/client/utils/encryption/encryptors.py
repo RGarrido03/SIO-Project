@@ -38,7 +38,7 @@ def encrypt_request(
     key: bytes = os.urandom(32),
     jwt: bytes | None = None,
     params: dict[str, str] | None = None,
-) -> tuple[str, str, str | None, str]:
+) -> tuple[str, str, str | None, str, bytes]:
     """
     Encrypts a request using hybrid encryption.
 
@@ -55,8 +55,8 @@ def encrypt_request(
     :param jwt: The JWT to be encrypted.
     :type jwt: bytes | None
 
-    :return: The encrypted URL with params, encrypted symmetric key, the encrypted data and the IV
-    :rtype: tuple[str, str | None, str]
+    :return: The encrypted URL with params, encrypted symmetric key, the encrypted data, the IV and the unencrypted key
+    :rtype: tuple[str, str | None, str, bytes]
     """
     # data: dict[str, Any] | None,          -> body
     # key: bytes = os.urandom(32),          -> jwt session key or key random
@@ -89,7 +89,7 @@ def encrypt_request(
         data_bytes = encrypt_symmetric(data_bytes.encode(), key, iv).decode()
 
     key_b64 = encrypt_key(public_key, jwt if jwt is not None else key)
-    return url, key_b64, data_bytes, b64_encode_and_escape(iv)
+    return url, key_b64, data_bytes, b64_encode_and_escape(iv), key
 
 
 def decrypt_symmetric(data: bytes, key: bytes, iv: bytes) -> bytes:

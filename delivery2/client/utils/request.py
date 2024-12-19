@@ -52,13 +52,13 @@ def request_without_session_repo(
     method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"],
     repository_address: str,
     url: str,
-    obj: dict[str, Any],
+    obj: dict[str, Any] | None,
     private_key: RSAPrivateKey | None,
     repository_public_key: RSAPublicKey,
     content_type: str = "application/json",
     params: dict[str, str] | None = None,
 ) -> tuple[str, requests.Response]:
-    (url, req_key, req_data, req_iv) = encrypt_request(
+    (url, req_key, req_data, req_iv, key) = encrypt_request(
         url, obj, repository_public_key, params=params
     )
 
@@ -76,12 +76,14 @@ def request_without_session_repo(
 
     body = response.content.decode()
 
-    if "Authorization" in response.headers and private_key is not None:
+    if "IV" in response.headers:
         res_iv = b64_decode_and_unescape(response.headers["IV"])
-        res_key = decrypt_asymmetric(
-            b64_decode_and_unescape(response.headers["Authorization"]),
-            private_key,
-        )
+        res_key = key
+        if "Authorization" in response.headers and private_key is not None:
+            res_key = decrypt_asymmetric(
+                b64_decode_and_unescape(response.headers["Authorization"]),
+                private_key,
+            )
         body = decrypt_symmetric(response.content, res_key, res_iv).decode()
 
     body_dict = json.loads(body)
@@ -116,7 +118,7 @@ def request_with_session(
         print("Session expired, please create a new one.")
         raise typer.Exit(code=1)
 
-    (url, req_key, req_data, req_iv) = encrypt_request(
+    (url, req_key, req_data, req_iv, _) = encrypt_request(
         url,
         obj,
         repository_public_key,

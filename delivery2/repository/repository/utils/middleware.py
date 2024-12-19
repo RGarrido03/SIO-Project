@@ -34,6 +34,7 @@ async def decrypt_request_key(request: Request) -> tuple[Request, bytes | None]:
     request.scope["headers"] = [(k, v) for k, v in headers.items()]
 
     if encryption != "session":
+        request.state.session_key = token
         return request, token
 
     payload: dict[str, Any] = jwt.decode(
