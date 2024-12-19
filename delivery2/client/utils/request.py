@@ -59,8 +59,9 @@ def request_repository(
     return decrypt_symmetric(response.content, res_key, res_iv).decode(), response
 
 
-def request_session(
+def request_with_session(
     method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"],
+    repository_address: str,
     url: str,
     obj: dict[str, Any] | None,
     session: bytes,
@@ -80,7 +81,7 @@ def request_session(
     )
     response = requests.request(
         method,
-        url,
+        repository_address + url,
         data=req_data,
         params=params,
         headers={

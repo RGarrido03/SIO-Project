@@ -11,7 +11,7 @@ from utils.output import (
     print_subject,
 )
 from utils.permission import Permission
-from utils.request import request_session
+from utils.request import request_with_session
 from utils.types import RepPublicKey, RepAddress, PathWithCheck
 
 app = typer.Typer()
@@ -27,9 +27,10 @@ def list_subjects(
 ):
     params = {"username": username}
 
-    body, _ = request_session(
+    body, _ = request_with_session(
         "GET",
-        f"{repository_address}{SUBJECT_URL}",
+        repository_address,
+        f"{SUBJECT_URL}",
         None,
         session_file.read_bytes(),
         repository_public_key,
@@ -64,9 +65,10 @@ def list_documents(
         "date_order": date[0] if date is not None else None,
     }
 
-    body, _ = request_session(
+    body, _ = request_with_session(
         "GET",
-        f"{repository_address}{DOCUMENT_URL}",
+        repository_address,
+        f"{DOCUMENT_URL}",
         None,
         session_file.read_bytes(),
         repository_public_key,
@@ -87,9 +89,10 @@ def assume_role(
     session_file: PathWithCheck,
     role: str,
 ):
-    body, _ = request_session(
+    body, _ = request_with_session(
         "POST",
-        f"{repository_address}{SUBJECT_URL}/session/role",
+        repository_address,
+        f"{SUBJECT_URL}/session/role",
         None,
         session_file.read_bytes(),
         repository_public_key,
@@ -111,9 +114,10 @@ def drop_role(
     session_file: PathWithCheck,
     role: str,
 ):
-    body, _ = request_session(
+    body, _ = request_with_session(
         "DELETE",
-        f"{repository_address}{SUBJECT_URL}/session/role",
+        repository_address,
+        f"{SUBJECT_URL}/session/role",
         None,
         session_file.read_bytes(),
         repository_public_key,
@@ -134,9 +138,10 @@ def list_roles(
     repository_address: RepAddress,
     session_file: PathWithCheck,
 ):
-    body, _ = request_session(
+    body, _ = request_with_session(
         "GET",
-        f"{repository_address}{SUBJECT_URL}/session/role",
+        repository_address,
+        f"{SUBJECT_URL}/session/role",
         None,
         session_file.read_bytes(),
         repository_public_key,
@@ -154,9 +159,10 @@ def list_role_subjects(
     session_file: PathWithCheck,
     role: str,
 ):
-    body, _ = request_session(
+    body, _ = request_with_session(
         "GET",
-        f"{repository_address}{ROLE_URL}/subject",
+        repository_address,
+        f"{ROLE_URL}/subject",
         None,
         session_file.read_bytes(),
         repository_public_key,
@@ -175,9 +181,10 @@ def assume_role(
     session_file: PathWithCheck,
     username: str,
 ):
-    body, _ = request_session(
+    body, _ = request_with_session(
         "GET",
-        f"{repository_address}{SUBJECT_URL}/role",
+        repository_address,
+        f"{SUBJECT_URL}/role",
         None,
         session_file.read_bytes(),
         repository_public_key,
@@ -196,9 +203,10 @@ def list_role_permissions(
     session_file: PathWithCheck,
     role: str,
 ):
-    body, _ = request_session(
+    body, _ = request_with_session(
         "GET",
-        f"{repository_address}{ROLE_URL}/permission",
+        repository_address,
+        f"{ROLE_URL}/permission",
         None,
         session_file.read_bytes(),
         repository_public_key,
@@ -217,9 +225,10 @@ def list_permission_roles(
     session_file: PathWithCheck,
     permission: Annotated[Permission, typer.Argument(case_sensitive=False)],
 ):
-    body, _ = request_session(
+    body, _ = request_with_session(
         "GET",
-        f"{repository_address}{ROLE_URL}",
+        repository_address,
+        f"{ROLE_URL}",
         None,
         session_file.read_bytes(),
         repository_public_key,

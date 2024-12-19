@@ -6,7 +6,6 @@ from typing import Any
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
 from cryptography.hazmat.primitives.ciphers import algorithms, modes, Cipher
-from requests import session
 
 from utils.encoding import b64_encode_and_escape, b64_decode_and_unescape
 

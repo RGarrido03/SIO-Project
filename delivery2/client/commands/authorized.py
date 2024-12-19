@@ -19,7 +19,7 @@ from utils.output import (
     print_roles_list,
 )
 from utils.permission import DocumentPermission, Permission
-from utils.request import request_session
+from utils.request import request_with_session
 from utils.types import RepPublicKey, RepAddress, PathWithCheck, PermissionOrStr
 
 app = typer.Typer()
@@ -62,9 +62,10 @@ def add_document(
         "file_content": enc_file,
     }
 
-    body, _ = request_session(
+    body, _ = request_with_session(
         "POST",
-        f"{repository_address}{DOCUMENT_URL}",
+        repository_address,
+        f"{DOCUMENT_URL}",
         meta,
         session_file.read_bytes(),
         repository_public_key,
@@ -82,9 +83,10 @@ def get_document_metadata(
     session_file: PathWithCheck,
     doc_name: str,
 ) -> tuple[str, Path, str]:
-    body, _ = request_session(
+    body, _ = request_with_session(
         "GET",
-        f"{repository_address}{DOCUMENT_URL}/{doc_name}",
+        repository_address,
+        f"{DOCUMENT_URL}/{doc_name}",
         None,
         session_file.read_bytes(),
         repository_public_key,
@@ -143,9 +145,10 @@ def delete_document(
     session_file: PathWithCheck,
     doc_name: str,
 ):
-    body, _ = request_session(
+    body, _ = request_with_session(
         "DELETE",
-        f"{repository_address}{DOCUMENT_URL}/{doc_name}",
+        repository_address,
+        f"{DOCUMENT_URL}/{doc_name}",
         None,
         session_file.read_bytes(),
         repository_public_key,
@@ -174,9 +177,10 @@ def add_subject(
         "public_key": public_key,
     }
 
-    body, _ = request_session(
+    body, _ = request_with_session(
         "POST",
-        f"{repository_address}{SUBJECT_URL}",
+        repository_address,
+        f"{SUBJECT_URL}",
         obj,
         session_file.read_bytes(),
         repository_public_key,
@@ -194,9 +198,10 @@ def suspend_subject(
     username: str,
 ):
     params = {"username": username, "active": False}
-    body, _ = request_session(
+    body, _ = request_with_session(
         "PATCH",
-        f"{repository_address}{SUBJECT_URL}/activation",
+        repository_address,
+        f"{SUBJECT_URL}/activation",
         None,
         session_file.read_bytes(),
         repository_public_key,
@@ -215,9 +220,10 @@ def activate_subject(
     username: str,
 ):
     params = {"username": username, "active": True}
-    body, _ = request_session(
+    body, _ = request_with_session(
         "PATCH",
-        f"{repository_address}{SUBJECT_URL}/activation",
+        repository_address,
+        f"{SUBJECT_URL}/activation",
         None,
         session_file.read_bytes(),
         repository_public_key,
@@ -238,9 +244,10 @@ def add_role(
     session_file: PathWithCheck,
     role: str,
 ):
-    body, _ = request_session(
+    body, _ = request_with_session(
         "POST",
-        f"{repository_address}{ROLE_URL}",
+        repository_address,
+        f"{ROLE_URL}",
         None,
         session_file.read_bytes(),
         repository_public_key,
@@ -260,9 +267,10 @@ def suspend_role(
     session_file: PathWithCheck,
     role: str,
 ):
-    body, _ = request_session(
+    body, _ = request_with_session(
         "PATCH",
-        f"{repository_address}{ROLE_URL}/activation/suspend",
+        repository_address,
+        f"{ROLE_URL}/activation/suspend",
         None,
         session_file.read_bytes(),
         repository_public_key,
@@ -282,9 +290,10 @@ def reactivate_role(
     session_file: PathWithCheck,
     role: str,
 ):
-    body, _ = request_session(
+    body, _ = request_with_session(
         "PATCH",
-        f"{repository_address}{ROLE_URL}/activation/activate",
+        repository_address,
+        f"{ROLE_URL}/activation/activate",
         None,
         session_file.read_bytes(),
         repository_public_key,
@@ -305,9 +314,9 @@ def manage_permission(
     add: bool,
 ):
     url = (
-        f"{repository_address}{ROLE_URL}/permission"
+        f"{ROLE_URL}/permission"
         if isinstance(username_or_permission, Permission)
-        else f"{repository_address}{SUBJECT_URL}/role"
+        else f"{SUBJECT_URL}/role"
     )
     params = {
         "role": role,
@@ -318,8 +327,9 @@ def manage_permission(
         ): username_or_permission,
     }
 
-    body, _ = request_session(
+    body, _ = request_with_session(
         "POST" if add else "DELETE",
+        repository_address,
         url,
         None,
         session_file.read_bytes(),
@@ -384,9 +394,10 @@ def change_acl_permissions(
     role: str,
     permission: Annotated[DocumentPermission, typer.Argument(case_sensitive=False)],
 ):
-    body, _ = request_session(
+    body, _ = request_with_session(
         "PATCH",
-        f"{repository_address}{DOCUMENT_URL}/{doc_name}/acl",
+        repository_address,
+        f"{DOCUMENT_URL}/{doc_name}/acl",
         None,
         session_file.read_bytes(),
         repository_public_key,
