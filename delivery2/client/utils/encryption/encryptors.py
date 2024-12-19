@@ -35,7 +35,7 @@ def encrypt_request(
     data: dict[str, Any] | None,
     public_key: RSAPublicKey,
     key: bytes = os.urandom(32),
-    payload: dict[str, Any] = None,
+    jwt: bytes | None = None,
     params: dict[str, str] | None = None,
 ) -> tuple[str, str, str | None, str]:
     """
@@ -51,27 +51,34 @@ def encrypt_request(
     :type key: bytes
     :param public_key: The public key to encrypt the symmetric key
     :type public_key: RSAPublicKey
-    :param payload: The payload to be sent in the request it works like a is_session
-    :type payload: dict[str, Any]
+    :param jwt: The JWT to be encrypted.
+    :type jwt: bytes | None
 
     :return: The encrypted URL with params, encrypted symmetric key, the encrypted data and the IV
     :rtype: tuple[str, str | None, str]
     """
-    url = url.lstrip("/") + "?" + "&".join([f"{k}={v}" for k, v in params.items()])
+    # data: dict[str, Any] | None,          -> body
+    # key: bytes = os.urandom(32),          -> jwt session key or key random
+    # jwt: bytes | None,                    -> jwt or None
+
     iv = os.urandom(16)
-    key_b64 = encrypt_key(public_key, key)
-    url = encrypt_symmetric(url.encode(), key, iv)
-    url = b64_encode_and_escape(url)
 
-    if data is None:
-        return url, key_b64, None, b64_encode_and_escape(iv)
+    url = url.lstrip("/")
+    if params is not None:
+        url = url + "?" + "&".join([f"{k}={v}" for k, v in params.items()])
 
-    if payload is not None:
-        key = payload["keys"][0].encode()
+    url = (
+        encrypt_symmetric(url.encode(), key, iv)
+        .replace(b"\n", b"\\n")
+        .replace(b"\r", b"\\r")
+    ).decode()
 
-    data_bytes = json.dumps(data).encode()
-    data_bytes = encrypt_symmetric(data_bytes, key, iv).decode()
+    data_bytes: str | None = None
+    if data is not None:
+        data_bytes = json.dumps(data)
+        data_bytes = encrypt_symmetric(data_bytes.encode(), key, iv).decode()
 
+    key_b64 = encrypt_key(public_key, jwt if jwt is not None else key)
     return url, key_b64, data_bytes, b64_encode_and_escape(iv)
 
 

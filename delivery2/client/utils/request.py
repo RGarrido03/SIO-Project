@@ -82,8 +82,8 @@ def request_with_session(
         url,
         obj,
         repository_public_key,
-        key=session,
-        payload=payload,
+        key=payload["keys"][0].encode(),
+        jwt=session,
         params=params,
     )
     response = requests.request(
