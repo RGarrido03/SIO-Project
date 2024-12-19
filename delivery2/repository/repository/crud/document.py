@@ -40,7 +40,12 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
         with open(f"{path}/{document.file_handle}", "wb") as f:
             f.write(file_content)
 
-        return await self.create(document)
+        document_mod = Document.model_validate(document)
+        document_mod.acl = dict(
+            {role: list(perm) for role, perm in document.acl.items()}
+        )
+        flag_modified(document_mod, "acl")
+        return await self._add_to_db(document_mod)
 
     async def get_by_name_and_organization(
         self, name: str, organization_name: str
