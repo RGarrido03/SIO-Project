@@ -31,14 +31,24 @@ def print_doc_metadata(body: dict[str, Any], include_encryption: bool = False) -
         "organization_name": "Organization",
         "creator_username": "Creator",
         "deleter_username": "Deleter",
-        "acl": "ACL",
     }
 
     body_info = [{key: body.get(key) for key in headers_info.keys()}]
+    print("=== General information ===")
     print(
         tabulate(
             body_info,
             headers=headers_info,
+            tablefmt="rounded_outline",
+        )
+    )
+
+    acl = [[k, v] for k, v in body["acl"].items()]
+    print("\n=== ACL ===")
+    print(
+        tabulate(
+            acl,
+            headers=["Role", "Permissions"],
             tablefmt="rounded_outline",
         )
     )
@@ -53,7 +63,7 @@ def print_doc_metadata(body: dict[str, Any], include_encryption: bool = False) -
     }
 
     body_enc = [{key: body.get(key) for key in headers_enc.keys()}]
-
+    print("\n=== Encryption details ===")
     print(
         tabulate(
             body_enc,
