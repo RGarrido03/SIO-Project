@@ -13,6 +13,7 @@ from sqlmodel.sql._expression_select_cls import SelectOfScalar
 
 from repository.config.database import get_session
 from repository.crud.base import CRUDBase
+from repository.crud.organization_role import crud_organization_role
 from repository.models.document import (
     Document,
     DocumentCreate,
@@ -82,8 +83,15 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
             return list(result.all())
 
     async def add_acl(
-        self, document: Document, role: str, permission: DocumentPermission
+        self,
+        document: Document,
+        role: str,
+        permission: DocumentPermission,
+        organization_name: str,
     ) -> Document:
+        if await crud_organization_role.get((organization_name, role)) is None:
+            raise ValueError("Role does not exist")
+
         if role not in document.acl:
             document.acl[role] = set()
         acl = set(document.acl[role])
@@ -93,8 +101,15 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
         return await self._add_to_db(document)
 
     async def remove_acl(
-        self, document: Document, role: str, permission: DocumentPermission
+        self,
+        document: Document,
+        role: str,
+        permission: DocumentPermission,
+        organization_name: str,
     ) -> Document:
+        if await crud_organization_role.get((organization_name, role)) is None:
+            raise ValueError("Role does not exist")
+
         if role not in document.acl:
             return document
         if (

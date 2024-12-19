@@ -93,8 +93,10 @@ async def update_document_acl(
     check_doc_permission(DocumentPermission.DOC_ACL, doc.acl, link.role_ids)
 
     if add:
-        return await crud_document.add_acl(doc, role, permission)
-    return await crud_document.remove_acl(doc, role, permission)
+        return await crud_document.add_acl(
+            doc, role, permission, link.organization_name
+        )
+    return await crud_document.remove_acl(doc, role, permission, link.organization_name)
 
 
 @router.delete("/{name}", description="rep_delete_doc")
