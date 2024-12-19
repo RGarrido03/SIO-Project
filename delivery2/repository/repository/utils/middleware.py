@@ -66,8 +66,10 @@ async def decrypt_request_url(request: Request, token: bytes | None) -> None:
     )
 
     url_unenc = decrypt_symmetric(url, token, iv).decode()
-    request._url = request._url.replace(path=url_unenc)
-    request.scope["path"] = "/" + url_unenc
+    path, query = url_unenc.split("?", 1) if "?" in url_unenc else (url_unenc, "")
+    request._url = request._url.replace(path=path)
+    request.scope["path"] = "/" + path
+    request.scope["query_string"] = query.encode()
 
 
 async def decrypt_request_body(request: Request, token: bytes | None) -> None:

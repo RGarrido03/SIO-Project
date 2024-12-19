@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from pprint import pprint
 from typing import AsyncGenerator, Callable, Awaitable, Any
 
 from fastapi import FastAPI, Request, Response
@@ -51,6 +52,7 @@ async def encryption_middleware(
 ) -> Response:
     (request, token) = await decrypt_request_key(request)
     await decrypt_request_url(request, token)
+    pprint(request.__dict__)
     await decrypt_request_body(request, token)
 
     try:

@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+from enum import Enum
 from typing import Any
 
 from cryptography.hazmat.primitives.asymmetric import padding
@@ -65,7 +66,16 @@ def encrypt_request(
 
     url = url.lstrip("/")
     if params is not None:
-        url = url + "?" + "&".join([f"{k}={v}" for k, v in params.items()])
+        url = (
+            url
+            + "?"
+            + "&".join(
+                [
+                    f"{k}={v.name if isinstance(v, Enum) else v}"
+                    for k, v in params.items()
+                ]
+            )
+        )
 
     url = (
         encrypt_symmetric(url.encode(), key, iv)
