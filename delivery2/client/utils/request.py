@@ -25,13 +25,14 @@ def request_without_session_repo(
     content_type: str = "application/json",
     params: dict[str, str] | None = None,
 ) -> tuple[str, requests.Response]:
-    (req_key, req_data, req_iv) = encrypt_request(obj, repository_public_key)
+    (url, req_key, req_data, req_iv) = encrypt_request(
+        url, obj, repository_public_key, params=params
+    )
 
     response = requests.request(
         method,
-        repository_address + url,
+        repository_address + "/" + url,
         data=req_data,
-        params=params,
         headers={
             "Content-Type": content_type,
             "Encryption": "repository",
@@ -77,14 +78,18 @@ def request_with_session(
         print("Session expired, please create a new one.")
         raise typer.Exit(code=1)
 
-    (req_key, req_data, req_iv) = encrypt_request(
-        obj, repository_public_key, session, payload
+    (url, req_key, req_data, req_iv) = encrypt_request(
+        url,
+        obj,
+        repository_public_key,
+        key=session,
+        payload=payload,
+        params=params,
     )
     response = requests.request(
         method,
-        repository_address + url,
+        repository_address + "/" + url,
         data=req_data,
-        params=params,
         headers={
             "Content-Type": content_type,
             "Encryption": "session",
