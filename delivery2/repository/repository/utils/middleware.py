@@ -113,8 +113,6 @@ async def _set_response_body(response: Response, body: bytes) -> None:
 async def obfuscate_response(response: Response) -> None:
     body = await _get_response_body(response)
 
-    print("PIXA DEBUG", body.decode())
-
     new_body = {
         "code": response.status_code,
         "data": body.decode(),
