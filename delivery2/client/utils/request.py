@@ -156,7 +156,13 @@ def request_with_session(
     data = body_dict.get("data")
 
     if 400 <= body_dict["code"] < 500:
-        print(data)
+        try:
+            msg = json.loads(data)
+            if "detail" not in msg:
+                raise Exception()
+            print(msg["detail"])
+        except:
+            print(data)
         raise typer.Exit(code=-1)
 
     return data, response
