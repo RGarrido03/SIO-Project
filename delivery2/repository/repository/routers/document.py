@@ -32,7 +32,7 @@ async def create_document(
 ) -> Document:
     doc.creator_username = link.subject_username
     doc.organization_name = link.organization_name
-    doc.acl = {role: {DocumentPermission.DOC_ACL} for role in link.role_ids}
+    doc.acl = {role: {DocumentPermission.DOC_ACL} for role in link.session.roles}
 
     return await crud_document.add_new(
         DocumentCreate.model_validate(doc), doc.file_content
@@ -48,7 +48,7 @@ async def get_document_metadata(
     if doc is None:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    check_doc_permission(DocumentPermission.DOC_READ, doc.acl, link.role_ids)
+    check_doc_permission(DocumentPermission.DOC_READ, doc.acl, link.session.roles)
     return doc
 
 
@@ -90,7 +90,7 @@ async def update_document_acl(
     if doc is None:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    check_doc_permission(DocumentPermission.DOC_ACL, doc.acl, link.role_ids)
+    check_doc_permission(DocumentPermission.DOC_ACL, doc.acl, link.session.roles)
 
     if add:
         return await crud_document.add_acl(
@@ -108,6 +108,6 @@ async def delete_document(
     if doc is None:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    check_doc_permission(DocumentPermission.DOC_DELETE, doc.acl, link.role_ids)
+    check_doc_permission(DocumentPermission.DOC_DELETE, doc.acl, link.session.roles)
     await crud_document.delete(doc.document_handle, link.subject.username)
     return doc.file_handle or ""
