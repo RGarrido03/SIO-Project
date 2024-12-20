@@ -126,7 +126,7 @@ def get_document_file(
 
     enc_file_path = Path(f"storage/docs/{organization}/{file_handle}")
 
-    get_file(file_handle, repository_address, enc_file_path)
+    get_file(file_handle, repository_public_key, repository_address, enc_file_path)
     dec_file = decrypt_file(enc_file_path, enc_meta_file_path)
 
     if file:
