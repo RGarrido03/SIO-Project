@@ -51,6 +51,7 @@ class CRUDDocument(CRUDBase[Document, DocumentCreate, uuid.UUID]):
                 select(Document)
                 .where(Document.name == name)
                 .where(Document.organization_name == organization_name)
+                .where(Document.file_handle != None)
             )
 
             return result.first()

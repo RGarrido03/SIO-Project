@@ -103,11 +103,12 @@ async def update_document_acl(
 async def delete_document(
     name: str,
     link: SubjectOrganizationLink = Security(get_current_user),
-) -> str:
+) -> Document:
     doc = await crud_document.get_by_name_and_organization(name, link.organization_name)
     if doc is None:
         raise HTTPException(status_code=404, detail="Document not found")
 
     check_doc_permission(DocumentPermission.DOC_DELETE, doc.acl, link.session.roles)
-    await crud_document.delete(doc.document_handle, link.subject.username)
-    return doc.file_handle or ""
+    if not await crud_document.delete(doc.document_handle, link.subject.username):
+        raise HTTPException(status_code=400, detail="Failed to delete document")
+    return doc

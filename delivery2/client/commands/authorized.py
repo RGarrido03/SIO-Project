@@ -154,7 +154,7 @@ def delete_document(
         session_file.read_bytes(),
         repository_public_key,
     )
-    print(body.strip('"'))
+    print_doc_metadata(json.loads(body), include_encryption=True)
 
 
 # rep_add_subject <session file> <username> <name> <email> <credentials file>
