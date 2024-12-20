@@ -45,6 +45,7 @@ def add_document(
     key = os.urandom(32)
     iv = os.urandom(16)
     enc_file = encrypt_symmetric(file_readed, key, iv)
+    enc_file = base64.encodebytes(enc_file)
     file_handle = sha256(enc_file).hexdigest()
 
     enc_file = enc_file.decode()
