@@ -1,6 +1,7 @@
 import hmac
 import json
 import os
+import urllib
 from enum import Enum
 from typing import Any
 
@@ -69,7 +70,7 @@ def encrypt_request(
             + "?"
             + "&".join(
                 [
-                    f"{k}={v.name if isinstance(v, Enum) else v}"
+                    f"{k}={v.name if isinstance(v, Enum) else urllib.parse.quote(str(v).encode())}"
                     for k, v in params.items()
                     if v is not None
                 ]
