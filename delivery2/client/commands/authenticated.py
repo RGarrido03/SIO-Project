@@ -75,7 +75,9 @@ def list_documents(
         params=params,
     )
     body = json.loads(body)
-    print_doc_metadata(body)
+    for doc in body:
+        print_doc_metadata(doc)
+        print(f"\n{'-'*64}\n")
 
 
 """Second delivery"""
