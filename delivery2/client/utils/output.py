@@ -3,7 +3,11 @@ from typing import Any
 from tabulate import tabulate
 
 
-def print_subject(body: dict[str, Any], include_email: bool = False) -> None:
+def print_subject(
+    body: dict[str, Any] | list[dict[str, Any]],
+    include_email: bool = False,
+    many: bool = False,
+) -> None:
     headers = {
         "username": "Username",
         "full_name": "Name",
@@ -13,7 +17,10 @@ def print_subject(body: dict[str, Any], include_email: bool = False) -> None:
     if include_email:
         headers["email"] = "E-mail"
 
-    body_mod = [{key: body.get(key) for key in headers.keys()}]
+    if many:
+        body_mod = [{key: s.get(key) for key in headers.keys()} for s in body]
+    else:
+        body_mod = [{key: body.get(key) for key in headers.keys()}]
 
     print(
         tabulate(

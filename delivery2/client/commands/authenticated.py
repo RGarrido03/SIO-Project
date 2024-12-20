@@ -37,7 +37,7 @@ def list_subjects(
         params=params,
     )
     body = json.loads(body)
-    print_subject(body)
+    print_subject(body, many=True)
 
 
 @app.command("rep_list_docs")
@@ -172,7 +172,7 @@ def list_role_subjects(
     )
 
     body = json.loads(body)
-    print_subject(body)
+    print_subject(body, many=True)
 
 
 # rep_list_subject_roles <session file> <username>
