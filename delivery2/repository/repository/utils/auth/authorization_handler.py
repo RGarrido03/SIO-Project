@@ -54,6 +54,8 @@ async def get_current_user(
         raise no_session_exception
     if link.session.expires < datetime.now():
         raise session_expired_exception
+    if str(link.session.id) != payload.get("sub"):
+        raise credentials_exception
     return link
 
 

@@ -103,13 +103,27 @@ python3 main.py rep_list_subject_roles $SESSION_FILE $USERNAME_1  # Should list 
 
 ## Documents
 
-### Management
+### Adding
 
 ```shell
 python3 main.py rep_add_doc $SESSION_FILE $FILE_NAME_1 $FILE_PATH_1
 python3 main.py rep_add_doc $SESSION_FILE "$FILE_NAME_2" "$FILE_PATH_2"
+```
 
-python3 main.py rep_get_file <replace_with_file_handle>
+### ACL
+
+```shell
+python3 main.py rep_acl_doc $SESSION_FILE $FILE_NAME_1 + $ROLE_1 DOC_DELETE
+python3 main.py rep_acl_doc $SESSION_FILE $FILE_NAME_1 + $ROLE_1 DOC_READ
+python3 main.py rep_acl_doc $SESSION_FILE $FILE_NAME_1 + $ROLE_2 DOC_ACL
+python3 main.py rep_acl_doc $SESSION_FILE $FILE_NAME_1 + $ROLE_2 DOC_DELETE
+python3 main.py rep_acl_doc $SESSION_FILE $FILE_NAME_1 - $ROLE_2 DOC_DELETE
+```
+
+### Management
+
+```shell
+python3 main.py rep_get_file <replace_with_file_handle_from_1>
 python3 main.py rep_get_doc_metadata $SESSION_FILE $FILE_NAME_1
 python3 main.py rep_decrypt_file $FILE_NAME_1 storage/docs/"$ORG_NAME"/"$FILE_NAME_1".json
 
@@ -120,12 +134,4 @@ python3 main.py rep_list_docs $SESSION_FILE --username $USERNAME_1
 python3 main.py rep_list_docs $SESSION_FILE --date <nt|ot|et> <date>  # Date filtering is not available in these test commands due to obvious reasons
 
 python3 main.py rep_delete_doc $SESSION_FILE $FILE_NAME_1
-```
-
-### ACL
-
-```shell
-python3 main.py rep_acl_doc $SESSION_FILE $FILE_NAME_1 + $ROLE_1 DOC_DELETE
-python3 main.py rep_acl_doc $SESSION_FILE $FILE_NAME_1 + $ROLE_2 DOC_ACL
-python3 main.py rep_acl_doc $SESSION_FILE $FILE_NAME_1 - $ROLE_1 DOC_DELETE
 ```
