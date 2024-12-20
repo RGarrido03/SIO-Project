@@ -1,7 +1,7 @@
 import base64
 import json
-from pathlib import Path
 from hashlib import sha256
+from pathlib import Path
 
 import typer
 from cryptography.hazmat.primitives import serialization
@@ -57,7 +57,6 @@ def decrypt_file(encrypted_file: Path, encryption_metadata: Path) -> bytes:
         print("File integrity check failed")
         raise typer.Exit(code=1)
 
-    encrypted_data = base64.encodebytes(encrypted_data)
     # TODO
     if metadata["alg"] != "AES":
         print("Unsupported algorithm")
