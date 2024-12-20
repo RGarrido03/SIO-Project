@@ -1,4 +1,5 @@
 import base64
+import hmac
 import json
 import os
 from enum import Enum
@@ -83,10 +84,11 @@ def encrypt_request(
         .replace(b"\r", b"\\r")
     ).decode()
 
-    data_bytes: str | None = None
+    data_bytes: bytes | None = None
     if data is not None:
-        data_bytes = json.dumps(data)
-        data_bytes = encrypt_symmetric(data_bytes.encode(), key, iv).decode()
+        data_bytes = json.dumps(data).encode()
+        data_bytes = encrypt_symmetric(data_bytes, key, iv)
+        data_bytes = data_bytes + hmac.digest(key, data_bytes, "sha256")
 
     key_b64 = encrypt_key(public_key, jwt if jwt is not None else key)
     return url, key_b64, data_bytes, b64_encode_and_escape(iv), key

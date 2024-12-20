@@ -1,6 +1,11 @@
 from fastapi import HTTPException
 from starlette import status
 
+hmac_exception = HTTPException(
+    status_code=status.HTTP_406_NOT_ACCEPTABLE,
+    detail="HMAC does not match",
+)
+
 credentials_exception = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
     detail="Could not validate credentials",

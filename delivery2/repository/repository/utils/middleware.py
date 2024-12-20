@@ -1,4 +1,5 @@
 import base64
+import hmac
 import json
 import os
 from typing import Any, AsyncIterable
@@ -17,6 +18,7 @@ from repository.utils.encryption.encryptors import (
     encrypt_symmetric,
     encrypt_asymmetric,
 )
+from repository.utils.exceptions import hmac_exception
 
 
 async def decrypt_request_key(request: Request) -> tuple[Request, bytes | None]:
@@ -88,6 +90,14 @@ async def decrypt_request_body(request: Request, token: bytes | None) -> None:
 
     if request.headers.get("Encryption") is None:
         return
+
+    if len(data) < 32:
+        return
+
+    data, hmac_bytes = data[:-32], data[-32:]
+
+    if not hmac.compare_digest(hmac.digest(token, data, "sha256"), hmac_bytes):
+        raise hmac_exception
 
     data = base64.decodebytes(data)
     data = decrypt_symmetric(data, token, iv)
