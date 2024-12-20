@@ -1,3 +1,4 @@
+import hmac
 import json
 import time
 from typing import Literal, Any
@@ -74,7 +75,16 @@ def request_without_session_repo(
         },
     )
 
-    body = response.content.decode()
+    body = response.content
+
+    if len(body) < 32:
+        return response.content.decode(), response
+
+    data, hmac_bytes = body[:-32], body[-32:]
+
+    if not hmac.compare_digest(hmac.digest(key, data, "sha256"), hmac_bytes):
+        print("HMAC verification failed.")
+        raise typer.Exit(code=-1)
 
     if "IV" in response.headers:
         res_iv = b64_decode_and_unescape(response.headers["IV"])
@@ -84,7 +94,7 @@ def request_without_session_repo(
                 b64_decode_and_unescape(response.headers["Authorization"]),
                 private_key,
             )
-        body = decrypt_symmetric(response.content, res_key, res_iv).decode()
+        body = decrypt_symmetric(data, res_key, res_iv).decode()
 
     body_dict = json.loads(body)
     code = body_dict.get("code")
@@ -118,7 +128,7 @@ def request_with_session(
         print("Session expired, please create a new one.")
         raise typer.Exit(code=1)
 
-    (url, req_key, req_data, req_iv, _) = encrypt_request(
+    (url, req_key, req_data, req_iv, key) = encrypt_request(
         url,
         obj,
         repository_public_key,
@@ -148,9 +158,17 @@ def request_with_session(
 
     res_iv = b64_decode_and_unescape(response.headers["IV"])
 
-    dec_body = decrypt_symmetric(
-        response.content, payload["keys"][0].encode(), res_iv
-    ).decode()
+    data = response.content
+    if len(data) < 32:
+        return response.content.decode(), response
+
+    data, hmac_bytes = data[:-32], data[-32:]
+
+    if not hmac.compare_digest(hmac.digest(key, data, "sha256"), hmac_bytes):
+        print("HMAC verification failed.")
+        raise typer.Exit(code=-1)
+
+    dec_body = decrypt_symmetric(data, payload["keys"][0].encode(), res_iv).decode()
 
     body_dict = json.loads(dec_body)
     data = body_dict.get("data")

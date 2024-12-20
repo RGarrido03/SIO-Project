@@ -156,6 +156,7 @@ async def encrypt_response(
     body = await _get_response_body(response)
     body_enc = encrypt_symmetric(body, key, iv)
     body_enc = base64.encodebytes(body_enc)
+    body_enc = body_enc + hmac.digest(key, body_enc, "sha256")
     await _set_response_body(response, body_enc)
 
     if public_key is not None:
