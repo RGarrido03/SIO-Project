@@ -124,7 +124,7 @@ async def activate_subject(
         SubjectOrganizationLink,
         Security(check_permission, scopes=[Permission.SUBJECT_UP]),
     ],
-) -> Subject:
+) -> SubjectActiveListing:
     result = await crud_subject_organization_link.set_active(
         username, link.organization_name, True
     )
@@ -133,7 +133,11 @@ async def activate_subject(
             status_code=404,
             detail="Subject not found or not linked to this organization",
         )
-    return result.subject
+    return SubjectActiveListing(
+        username=result.subject_username,
+        active=result.active,
+        full_name=result.subject.full_name,
+    )
 
 
 @router.patch("/activation/suspend", description="rep_suspend_subject")
@@ -143,7 +147,7 @@ async def suspend_subject(
         SubjectOrganizationLink,
         Security(check_permission, scopes=[Permission.SUBJECT_DOWN]),
     ],
-) -> Subject:
+) -> SubjectActiveListing:
     result = await crud_subject_organization_link.set_active(
         username, link.organization_name, False
     )
@@ -152,4 +156,8 @@ async def suspend_subject(
             status_code=404,
             detail="Subject not found or not linked to this organization",
         )
-    return result.subject
+    return SubjectActiveListing(
+        username=result.subject_username,
+        active=result.active,
+        full_name=result.subject.full_name,
+    )

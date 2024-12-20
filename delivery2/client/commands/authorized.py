@@ -197,18 +197,18 @@ def suspend_subject(
     session_file: PathWithCheck,
     username: str,
 ):
-    params = {"username": username, "active": False}
+    params = {"username": username}
     body, _ = request_with_session(
         "PATCH",
         repository_address,
-        f"{SUBJECT_URL}/activation",
+        f"{SUBJECT_URL}/activation/suspend",
         None,
         session_file.read_bytes(),
         repository_public_key,
         params=params,
     )
     body = json.loads(body)
-    print_subject(body, include_email=True)
+    print_subject(body)
 
 
 # rep_activate_subject <session file> <username>
@@ -219,18 +219,18 @@ def activate_subject(
     session_file: PathWithCheck,
     username: str,
 ):
-    params = {"username": username, "active": True}
+    params = {"username": username}
     body, _ = request_with_session(
         "PATCH",
         repository_address,
-        f"{SUBJECT_URL}/activation",
+        f"{SUBJECT_URL}/activation/activate",
         None,
         session_file.read_bytes(),
         repository_public_key,
         params=params,
     )
     body = json.loads(body)
-    print_subject(body, include_email=True)
+    print_subject(body)
 
 
 """Second delivery"""
