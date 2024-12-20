@@ -75,7 +75,7 @@ def request_without_session_repo(
         },
     )
 
-    body = response.content
+    body = b64_decode_and_unescape(response.content)
 
     if len(body) < 32:
         return response.content.decode(), response
@@ -87,11 +87,11 @@ def request_without_session_repo(
         raise typer.Exit(code=-1)
 
     if "IV" in response.headers:
-        res_iv = b64_decode_and_unescape(response.headers["IV"])
+        res_iv = b64_decode_and_unescape(response.headers["IV"].encode())
         res_key = key
         if "Authorization" in response.headers and private_key is not None:
             res_key = decrypt_asymmetric(
-                b64_decode_and_unescape(response.headers["Authorization"]),
+                b64_decode_and_unescape(response.headers["Authorization"].encode()),
                 private_key,
             )
         body = decrypt_symmetric(data, res_key, res_iv).decode()
@@ -156,9 +156,10 @@ def request_with_session(
     if "IV" not in response.headers:
         return response.content.decode(), response
 
-    res_iv = b64_decode_and_unescape(response.headers["IV"])
+    res_iv = b64_decode_and_unescape(response.headers["IV"].encode())
 
-    data = response.content
+    data = b64_decode_and_unescape(response.content)
+
     if len(data) < 32:
         return response.content.decode(), response
 

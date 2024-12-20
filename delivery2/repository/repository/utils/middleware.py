@@ -28,7 +28,7 @@ async def decrypt_request_key(request: Request) -> tuple[Request, bytes | None]:
     if (auth_header := request.headers.get("Authorization")) is None:
         return request, None
 
-    auth_header_bytes = b64_decode_and_unescape(auth_header)
+    auth_header_bytes = b64_decode_and_unescape(auth_header.encode())
     token = decrypt_asymmetric(auth_header_bytes, settings.KEYS[0])
 
     headers = dict(request.scope["headers"])
@@ -94,12 +94,12 @@ async def decrypt_request_body(request: Request, token: bytes | None) -> None:
     if len(data) < 32:
         return
 
+    data = b64_decode_and_unescape(data)
     data, hmac_bytes = data[:-32], data[-32:]
 
     if not hmac.compare_digest(hmac.digest(token, data, "sha256"), hmac_bytes):
         raise hmac_exception
 
-    data = base64.decodebytes(data)
     data = decrypt_symmetric(data, token, iv)
 
     request._body = data
@@ -155,13 +155,13 @@ async def encrypt_response(
 
     body = await _get_response_body(response)
     body_enc = encrypt_symmetric(body, key, iv)
-    body_enc = base64.encodebytes(body_enc)
     body_enc = body_enc + hmac.digest(key, body_enc, "sha256")
+    body_enc = b64_encode_and_escape(body_enc)
     await _set_response_body(response, body_enc)
 
     if public_key is not None:
         key_enc = encrypt_asymmetric(key, public_key)
-        response.headers["Authorization"] = b64_encode_and_escape(key_enc)
+        response.headers["Authorization"] = b64_encode_and_escape(key_enc).decode()
 
     response.headers["Content-Length"] = str(len(body_enc))
-    response.headers["IV"] = b64_encode_and_escape(iv)
+    response.headers["IV"] = b64_encode_and_escape(iv).decode()

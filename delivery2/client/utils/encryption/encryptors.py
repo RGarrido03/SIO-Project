@@ -1,4 +1,3 @@
-import base64
 import hmac
 import json
 import os
@@ -16,9 +15,7 @@ def encrypt_symmetric(data: bytes, key: bytes, iv: bytes) -> bytes:
     algorithm = algorithms.AES(key)
     mode = modes.CTR(iv)
     encryptor = Cipher(algorithm, mode).encryptor()
-
-    data = encryptor.update(data) + encryptor.finalize()
-    return base64.encodebytes(data)
+    return encryptor.update(data) + encryptor.finalize()
 
 
 def encrypt_asymmetric(data: bytes, public_key: RSAPublicKey) -> bytes:
@@ -29,7 +26,7 @@ def encrypt_key(
     public_key: RSAPublicKey,
     key: bytes = os.urandom(32),
 ) -> str:
-    return b64_encode_and_escape(encrypt_asymmetric(key, public_key))
+    return b64_encode_and_escape(encrypt_asymmetric(key, public_key)).decode()
 
 
 def encrypt_request(
@@ -74,28 +71,26 @@ def encrypt_request(
                 [
                     f"{k}={v.name if isinstance(v, Enum) else v}"
                     for k, v in params.items()
+                    if v is not None
                 ]
             )
         )
 
-    url = (
-        encrypt_symmetric(url.encode(), key, iv)
-        .replace(b"\n", b"\\n")
-        .replace(b"\r", b"\\r")
-    ).decode()
+    url_enc = encrypt_symmetric(url.encode(), key, iv)
+    url = b64_encode_and_escape(url_enc).decode()
 
     data_bytes: bytes | None = None
     if data is not None:
         data_bytes = json.dumps(data).encode()
         data_bytes = encrypt_symmetric(data_bytes, key, iv)
         data_bytes = data_bytes + hmac.digest(key, data_bytes, "sha256")
+        data_bytes = b64_encode_and_escape(data_bytes)
 
     key_b64 = encrypt_key(public_key, jwt if jwt is not None else key)
-    return url, key_b64, data_bytes, b64_encode_and_escape(iv), key
+    return url, key_b64, data_bytes, b64_encode_and_escape(iv).decode(), key
 
 
 def decrypt_symmetric(data: bytes, key: bytes, iv: bytes) -> bytes:
-    data = base64.decodebytes(data)
     algorithm = algorithms.AES(key)
     mode = modes.CTR(iv)
     decryptor = Cipher(algorithm, mode).decryptor()
@@ -125,12 +120,12 @@ def decrypt_dict(
     :return: The decrypted dictionary
     :rtype: dict[str, Any]
     """
-    key = b64_decode_and_unescape(key)
+    key = b64_decode_and_unescape(key.encode())
     key = decrypt_asymmetric(key, private_key)
 
-    iv = b64_decode_and_unescape(iv)
+    iv = b64_decode_and_unescape(iv.encode())
 
-    data = b64_decode_and_unescape(data)
+    data = b64_decode_and_unescape(data.encode())
     data = decrypt_symmetric(data, key, iv)
 
     return json.loads(data)
