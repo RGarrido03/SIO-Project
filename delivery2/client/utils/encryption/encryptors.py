@@ -77,6 +77,7 @@ def encrypt_request(
         )
 
     url_enc = encrypt_symmetric(url.encode(), key, iv)
+    url_enc = url_enc + hmac.digest(key, url_enc, "sha256")
     url = b64_encode_and_escape(url_enc).decode()
 
     data_bytes: bytes | None = None

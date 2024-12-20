@@ -62,12 +62,11 @@ async def decrypt_request_url(request: Request, token: bytes | None) -> None:
 
     iv = base64.decodebytes(iv_header.encode())
 
-    url = base64.decodebytes(
-        request.url.path.encode()
-        .replace(b"\\n", b"\n")
-        .replace(b"\\r", b"\r")
-        .lstrip(b"/")
-    )
+    url = b64_decode_and_unescape(request.url.path.encode().lstrip(b"/"))
+    url, hmac_bytes = url[:-32], url[-32:]
+
+    if not hmac.compare_digest(hmac.digest(token, url, "sha256"), hmac_bytes):
+        raise hmac_exception
 
     url_unenc = decrypt_symmetric(url, token, iv).decode()
     path, query = url_unenc.split("?", 1) if "?" in url_unenc else (url_unenc, "")
