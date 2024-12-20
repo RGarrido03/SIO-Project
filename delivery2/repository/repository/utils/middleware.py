@@ -5,7 +5,7 @@ import os
 from typing import Any, AsyncIterable
 
 import jwt
-from fastapi import Request
+from fastapi import Request, HTTPException
 from starlette.datastructures import State
 from starlette.middleware.base import _StreamingResponse
 from starlette.responses import Response
@@ -23,6 +23,10 @@ from repository.utils.exceptions import hmac_exception
 
 async def decrypt_request_key(request: Request) -> tuple[Request, bytes | None]:
     if (encryption := request.headers.get("Encryption")) is None:
+        if settings.PRODUCTION and encryption not in ["session", "repository"]:
+            raise HTTPException(
+                status_code=418, detail="Encryption header is missing or invalid"
+            )
         return request, None
 
     if (auth_header := request.headers.get("Authorization")) is None:

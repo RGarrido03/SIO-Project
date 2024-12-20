@@ -33,7 +33,7 @@ app = FastAPI(
     debug=not settings.PRODUCTION,
     docs_url=None if settings.PRODUCTION else "/docs",
     redoc_url=None if settings.PRODUCTION else "/redoc",
-    openapi_url=None if settings.PRODUCTION else "/openapi.json",
+    openapi_url=None if settings.PRODUCTION else "/docs/openapi.json",
 )
 
 app.add_middleware(
@@ -59,7 +59,9 @@ async def encryption_middleware(
     except ValueError as e:
         response = CustomORJSONResponse(content={"detail": str(e)}, status_code=400)
 
-    await obfuscate_response(response)
+    if settings.PRODUCTION or not request.url.path.startswith("/docs"):
+        await obfuscate_response(response)
+
     await encrypt_response(
         response, request.state, request.headers.get("Encryption") is not None
     )
