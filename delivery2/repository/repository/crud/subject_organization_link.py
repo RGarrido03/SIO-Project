@@ -3,6 +3,7 @@ from typing import cast
 
 from cryptography.hazmat.primitives._serialization import Encoding, PublicFormat
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
+from sqlalchemy.orm.attributes import flag_modified
 from sqlmodel import select
 from sqlmodel.sql._expression_select_cls import SelectOfScalar
 
@@ -101,14 +102,17 @@ class CRUDSubjectOrganizationLink(
         if obj.session is None:
             raise ValueError("Session not found")
 
+        roles = set(obj.session.roles)
+
         if add:
             if not any(a == role for a in obj.role_ids):
                 raise ValueError("Role not found in subject")
-            obj.session.roles.add(role)
+            roles.add(role)
         else:
-            obj.session.roles.remove(role)
+            roles.discard(role)
 
-        obj.session.roles = list(obj.session.roles)
+        obj.session.roles = roles
+        flag_modified(obj, "session")
         obj = await self._add_to_db(obj)
 
         token = create_token(
